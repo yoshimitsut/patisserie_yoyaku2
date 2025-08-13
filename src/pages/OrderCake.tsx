@@ -6,7 +6,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ja } from 'date-fns/locale';
 // import { data } from 'react-router-dom';
-import { addDays, endOfMonth, isAfter, isSameDay } from 'date-fns';
+import { addDays, endOfMonth, isAfter, isSameDay, getDay } from 'date-fns';
 import type { StylesConfig, GroupBase } from 'react-select';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -224,6 +224,7 @@ export default function OrderCake() {
                     placeholder="ケーキを選択"
                     // styles={customSyles}
                     required
+                    styles={customStyles}
                   />
                   <label className='select-group'>*ケーキ名:</label>
                 </div>
@@ -240,6 +241,7 @@ export default function OrderCake() {
                       }
                       classNamePrefix='react-select'
                       placeholder='サイズを選択'
+                      styles={customStyles}
                     />
                     <label className='select-group'>*ケーキのサイズ</label>
                   </div>
@@ -254,6 +256,7 @@ export default function OrderCake() {
                   }
                   classNamePrefix='react-select'
                   placeholder='数量'
+                  styles={customStyles}
                   />
                   <label className='select-group'>*個数:</label>
                 </div>
@@ -278,7 +281,11 @@ export default function OrderCake() {
                   <input type="text" name="lastname" id="lastname" placeholder="タロウ" />
               </div>
               <div className='input-group'>
-                <label htmlFor="tel">ハイフン不要</label>
+                <label htmlFor="email">*メールアドレス</label>
+                <input type="email" name="email" id="email" placeholder='必須'/>
+              </div>
+              <div className='input-group'>
+                <label htmlFor="tel">*お電話番号</label>
                 {/* <input type="text" name="tel" id="tel" placeholder='ハイフン不要' /> */}
                 <input type="tel" name="tel" id="tel" placeholder='ハイフン不要'/>
               </div>
@@ -289,7 +296,7 @@ export default function OrderCake() {
           <div className="date-information">
             <label htmlFor="date" className='title-information'>*受取日 / その他</label>
             <div className='input-group'>
-              <label htmlFor="datepicker">*受け取り希望日</label>
+              <label htmlFor="datepicker" className='datepicker'>*受け取り希望日</label>
               <DatePicker
                 selected={selectedDate}
                 onChange={(date) => setSelectedDate(date)}
@@ -302,6 +309,11 @@ export default function OrderCake() {
                 className="react-datepicker"
                 locale={ja}
                 calendarClassName="datepicker-calendar"
+                dayClassName={(date) => {
+                  if (isSameDay(date, today)) return "hoje-azul";
+                  if (getDay(date) === 0) return "domingo-vermelho";
+                  return "";
+                }}
               />
             </div>
           
