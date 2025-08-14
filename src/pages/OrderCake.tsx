@@ -2,12 +2,13 @@ import { useState } from 'react';
 import cakesData from '../data/cake.json';
 import Select from 'react-select';
 import "./OrderCake.css";
-import DatePicker from "react-datepicker";
+import DatePicker, { CalendarContainer } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ja } from 'date-fns/locale';
 // import { data } from 'react-router-dom';
-import { addDays, endOfMonth, isAfter, isSameDay, getDay } from 'date-fns';
+import { addDays, isAfter, isSameDay, getDay } from 'date-fns';
 import type { StylesConfig, GroupBase } from 'react-select';
+import type { ReactNode } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -22,8 +23,32 @@ type OptionType = {
   label: string;
 };
 
+type MyContainerProps = {
+  className?: string;
+  children?: ReactNode;
+};
 
 export default function OrderCake() {
+  
+  const MyContainer = ({ className, children }: MyContainerProps) => {
+    return (
+      <div>
+        <CalendarContainer className={className}>{children}</CalendarContainer>
+        <div className='calendar-notice'>
+          <div style={{ padding: "20px" }}>
+              <p>３日前よりご予約可能（２週間後まで）</p>
+            </div>
+          <div className='notice'>
+            <div className='selectable'></div>
+            {/* <div style={{ padding: "20px" }}> */}
+              <span>予約可能日  /  <span className='yassumi'>休</span> 休業日</span>
+            {/* </div> */}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const cakeOptions: OptionType[] = cakesData.cakes.map(c => ({
     value: String(c.id_cake),
@@ -110,7 +135,7 @@ export default function OrderCake() {
   ];
 
   const isDateAllowed = (date: Date) => !excludedDates.some((d) => isSameDay(d, date));
-  const maxDate = endOfMonth(addDays(today, 31));
+  // const maxDate = endOfMonth(addDays(today, 31));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
   const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
@@ -127,6 +152,10 @@ export default function OrderCake() {
       },
     }),
   }
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.target.blur(); // impede abrir teclado no celular
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -261,9 +290,11 @@ export default function OrderCake() {
                   <label className='select-group'>*個数:</label>
                 </div>
                 
-                <button type='button' onClick={addCake} className='btn-add-cake'>
-                  ➕ 追加
-                </button>
+                <div className='btn-div'>
+                  <button type='button' onClick={addCake} className='btn btn-add-cake'>
+                    ➕ 別のケーキを追加
+                  </button>
+                </div>
               </div>
             )}
           )}
@@ -295,24 +326,42 @@ export default function OrderCake() {
 
           <div className="date-information">
             <label htmlFor="date" className='title-information'>*受取日 / その他</label>
+            <h3 className='notification'>受取日は休業日を除いた３日以降より可能</h3>
+            
             <div className='input-group'>
               <label htmlFor="datepicker" className='datepicker'>*受け取り希望日</label>
               <DatePicker
                 selected={selectedDate}
                 onChange={(date) => setSelectedDate(date)}
                 minDate={today}
-                maxDate={maxDate}
+                maxDate={addDays(today, 17)} 
                 excludeDates={excludedDates}
                 filterDate={isDateAllowed}
                 dateFormat="yyyy年MM月dd日"
                 placeholderText="日付を選択"
                 className="react-datepicker"
                 locale={ja}
+                onFocus={handleFocus} 
                 calendarClassName="datepicker-calendar"
                 dayClassName={(date) => {
                   if (isSameDay(date, today)) return "hoje-azul";
                   if (getDay(date) === 0) return "domingo-vermelho";
                   return "";
+                }}
+                calendarContainer={MyContainer}
+                
+                renderDayContents={(day, date) => {
+                  const isAvailable = isDateAllowed(date);
+                  const isFuture = isAfter(date, today);
+                  const isHoliday = excludedDates.some(d => isSameDay(d, date));
+
+                  return (
+                    <div className="day-cell">
+                      <span>{day}</span>
+                      {isAvailable && isFuture && <div className="selectable"></div>}
+                      {isHoliday && <span className="yassumi">休</span>}
+                    </div>
+                  );
                 }}
               />
             </div>

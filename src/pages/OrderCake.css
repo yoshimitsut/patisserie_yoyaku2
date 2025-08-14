@@ -39,7 +39,7 @@ body {
     gap: 21px;
     position: relative;
     margin: 25px;
-    background-color: rgba(156, 72, 72, 0.18); 
+    color: red;
   }
 
 }
@@ -68,17 +68,12 @@ body {
     font-family: inter;
     font-weight: 400;
     font-size: 16px;
-    /* font-style: var(--framer-input-font-style); */
     color: #000;
-    /* font-feature-settings: var(--framer-input-font-open-type-features); */
     border: none;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-    /* width: 100%; */
-    /* height: var(--framer-input-wrapper-height, 100%); */
     letter-spacing: 0em;
-    /* text-align: var(--framer-input-font-text-alignment); */
     line-height: 1.2em;
     background-color: rgb(255, 255, 255);
     border: 1px solid rgb(43, 43, 43);
@@ -89,8 +84,6 @@ body {
   .cake-information{
     .box-cake {
       position: relative;
-      padding: 15px;
-      /* border: 1px solid #000; */
       border-radius: 8px;
       margin-bottom: 20px;
       display: flex;
@@ -128,11 +121,37 @@ body {
     z-index: 1;
   }
 
+  .react-datepicker-popper {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  transform: none !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white; /* fundo */
+  z-index: 9999; /* acima de tudo */
+}
+
+.react-datepicker {
+  font-size: 1.2rem;
+  width: 100%;
+  height: auto;
+  max-width: 500px; /* centraliza se quiser */
+}
+
+  .react-datepicker__header h2 {
+    font-size: 1.5rem;
+    padding-bottom: 0.4rem;
+  } 
+
   .react-datepicker {
     font-size: 2rem;
     border-radius: 8px;
-    width: 120%;
-    height: 120%;
+    /* width: 120%;
+    height: 120%; */
   }
 
   .react-datepicker__month-container {
@@ -154,18 +173,63 @@ body {
   }
 
   .react-datepicker__day{
-    width: 8vw;
-    aspect-ratio: 1 / 1;
+    width: 11vw;
+    aspect-ratio: 1 / 1.2;
+    max-width: 65px;
     border: #000 1px solid;
     text-align: left;
+    margin: 0px !important;
   }
 
   .react-datepicker__day-name {
-    width: 8vw;
+    width: 11vw;
+    max-width: 65px;
     aspect-ratio: 1 / .65;
     font-size: larger;
+    margin: 0px !important;
   }
 
+  .calendar-notice {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    padding-top: 10px;
+  }
+
+  .calendar-notice .notice {
+    display: flex;
+    flex-direction: row;
+    background-color: transparent;
+    align-content: center;
+    align-items: center;
+    display: flex;
+    gap: 3px;
+    position: relative;
+    margin: 5px;
+  }
+
+  .selectable {
+    border: 4px solid red;
+    width: 4vw;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%; 
+    max-width: 22px;
+  }
+  
+  .yassumi {
+    color:#a1a1a1;
+    font-size: 1.8rem;
+  }
+  
+  .react-datepicker__day--disabled .selectable{
+     display: none;
+  }
+
+  .day-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
   .cake-information, .date-information, .client-information {
     display: flex;
@@ -198,6 +262,7 @@ body {
     /* appearance: none; */
     font-weight: bold;
     font-size: 1.2rem;
+    box-sizing: border-box;
   }
 
 
@@ -227,12 +292,15 @@ body {
       padding: 15px;
       cursor: pointer;
       border-radius: 10px;
-      width: 80%;
       font-size: 18px;
       background-color: #d2d2d2;
     }
     .btn:hover{
       background-color: #bec3c4;
+    }
+
+    .send {
+      width: 80%;
     }
   }
 
@@ -250,4 +318,58 @@ body {
 
 .react-datepicker__day--disabled{
   color: #ccc !important;
+}
+
+
+
+/* Tablets */
+@media (min-width: 640px) and (max-width: 767px) {
+  .container {
+    /* background: orange; */
+    .container {
+      width: 570px;
+    }
+  }
+}
+
+/* Laptops */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container {
+    width: 670px;
+  }
+}
+
+/* Telas grandes */
+@media (min-width: 1024px) {
+  .container {
+    width: 980px;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    
+  }
+}
+
+
+/* Telas pequenas (celulares) */
+@media (max-width: 639px) {
+  .container {
+    
+    .full-name {
+      flex-direction: column;
+
+      .name-label {
+        flex-direction: column;
+        display: flex;
+        gap: 10px;
+      }
+    }
+  }
+  .react-datepicker__day{
+    width: 12vw;
+  }
+  .react-datepicker__day-name {
+    width: 12vw;
+  }
 }
