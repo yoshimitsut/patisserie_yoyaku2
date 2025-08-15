@@ -346,6 +346,7 @@ export default function OrderCake() {
                 dayClassName={(date) => {
                   if (isSameDay(date, today)) return "hoje-azul";
                   if (getDay(date) === 0) return "domingo-vermelho";
+                  if (getDay(date) === 6) return "sabado-azul";
                   return "";
                 }}
                 calendarContainer={MyContainer}
