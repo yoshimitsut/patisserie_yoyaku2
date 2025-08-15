@@ -340,9 +340,8 @@ body {
 @media (min-width: 640px) and (max-width: 767px) {
   .container {
     /* background: orange; */
-    .container {
-      width: 570px;
-    }
+    width: 100vw;
+    
   }
 }
 
@@ -369,7 +368,12 @@ body {
 /* Telas pequenas (celulares) */
 @media (max-width: 639px) {
   .container {
-    
+    width: 100vw;
+
+    .box-cake {
+      width: 95vw;
+    }
+
     .full-name {
       flex-direction: column;
 
