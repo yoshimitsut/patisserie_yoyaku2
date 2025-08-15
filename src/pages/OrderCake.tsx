@@ -41,7 +41,7 @@ export default function OrderCake() {
           <div className='notice'>
             <div className='selectable'></div>
             {/* <div style={{ padding: "20px" }}> */}
-              <span>予約可能日  /  <span className='yassumi'>X</span> 休業日</span>
+              <span>予約可能日  /  <span className='yassumi'>x</span> 休業日</span>
             {/* </div> */}
           </div>
         </div>
@@ -359,7 +359,7 @@ export default function OrderCake() {
                     <div className="day-cell">
                       <span>{day}</span>
                       {isAvailable && isFuture && <div className="selectable"></div>}
-                      {isHoliday && <span className="yassumi">X</span>}
+                      {isHoliday && <span className="yassumi">x</span>}
                     </div>
                   );
                 }}
