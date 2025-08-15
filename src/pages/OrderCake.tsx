@@ -77,7 +77,7 @@ export default function OrderCake() {
       prev.map((item, i) => (i === index ? {...item, [field]: value } : item))
     );
   };
-  const [pickupHour, setPickupHour] = useState("11~13時");
+  const [pickupHour, setPickupHour] = useState("時間を選択");
 
   const hoursOptions = [
     { value: "11~13時", label: "11~13時" },
@@ -271,6 +271,7 @@ export default function OrderCake() {
                       classNamePrefix='react-select'
                       placeholder='サイズを選択'
                       styles={customStyles}
+                      required
                     />
                     <label className='select-group'>*ケーキのサイズ</label>
                   </div>
@@ -286,6 +287,7 @@ export default function OrderCake() {
                   classNamePrefix='react-select'
                   placeholder='数量'
                   styles={customStyles}
+                  required
                   />
                   <label className='select-group'>*個数:</label>
                 </div>
@@ -305,20 +307,20 @@ export default function OrderCake() {
             <div className="full-name">
               <div className='name-label input-group'>
                   <label htmlFor="name-label">*姓(カタカナ)</label>
-                  <input type="text" name="first-name" id="first-name" placeholder="ヒガ" />
+                  <input type="text" name="first-name" id="first-name" placeholder="ヒガ" required/>
               </div>
               <div className='name-label input-group'>
                   <label htmlFor="first-name">*名(カタカナ)</label>
-                  <input type="text" name="lastname" id="lastname" placeholder="タロウ" />
+                  <input type="text" name="lastname" id="lastname" placeholder="タロウ" required/>
               </div>
               <div className='input-group'>
                 <label htmlFor="email">*メールアドレス</label>
-                <input type="email" name="email" id="email" placeholder='必須'/>
+                <input type="email" name="email" id="email" placeholder='必須' required/>
               </div>
               <div className='input-group'>
                 <label htmlFor="tel">*お電話番号</label>
                 {/* <input type="text" name="tel" id="tel" placeholder='ハイフン不要' /> */}
-                <input type="tel" name="tel" id="tel" placeholder='ハイフン不要'/>
+                <input type="tel" name="tel" id="tel" placeholder='ハイフン不要' required/>
               </div>
             </div>
 
@@ -343,6 +345,7 @@ export default function OrderCake() {
                 locale={ja}
                 onFocus={handleFocus} 
                 calendarClassName="datepicker-calendar"
+                required
                 dayClassName={(date) => {
                   if (isSameDay(date, today)) return "hoje-azul";
                   if (getDay(date) === 0) return "domingo-vermelho";
@@ -372,9 +375,11 @@ export default function OrderCake() {
                 inputId="pickupHour"
                 options={hoursOptions}
                 value={hoursOptions.find(h => h.value === pickupHour)}
-                onChange={(selected) => setPickupHour(selected?.value || "11~13時")}
+                onChange={(selected) => setPickupHour(selected?.value || "時間を選択")}
                 classNamePrefix="react-select"
                 styles={customStyles}
+                placeholder="時間を選択"
+                required
               />
               <label htmlFor="pickupHour" className='select-group'>受け取り希望時間</label>
             </div>

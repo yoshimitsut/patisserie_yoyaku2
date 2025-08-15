@@ -103,8 +103,8 @@ body {
     }
     
     .img-cake-order {
-      width: 350px;
-      padding-bottom: 20px;
+      width: 400px;
+      padding: 35px;
     }
   }
 
@@ -220,6 +220,7 @@ body {
   .yassumi {
     color:#a1a1a1;
     font-size: 1.8rem;
+    font-family: sans-serif;
   }
   
   .react-datepicker__day--disabled .selectable{
