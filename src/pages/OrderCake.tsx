@@ -41,7 +41,7 @@ export default function OrderCake() {
           <div className='notice'>
             <div className='selectable'></div>
             {/* <div style={{ padding: "20px" }}> */}
-              <span>予約可能日  /  <span className='yassumi'>休</span> 休業日</span>
+              <span>予約可能日  /  <span className='yassumi'>X</span> 休業日</span>
             {/* </div> */}
           </div>
         </div>
@@ -326,7 +326,7 @@ export default function OrderCake() {
 
           <div className="date-information">
             <label htmlFor="date" className='title-information'>*受取日 / その他</label>
-            <h3 className='notification'>受取日は休業日を除いた３日以降より可能</h3>
+            <span className='notification'>受取日は休業日を除いた３日以降より可能</span>
             
             <div className='input-group'>
               <label htmlFor="datepicker" className='datepicker'>*受け取り希望日</label>
@@ -359,7 +359,7 @@ export default function OrderCake() {
                     <div className="day-cell">
                       <span>{day}</span>
                       {isAvailable && isFuture && <div className="selectable"></div>}
-                      {isHoliday && <span className="yassumi">休</span>}
+                      {isHoliday && <span className="yassumi">X</span>}
                     </div>
                   );
                 }}
