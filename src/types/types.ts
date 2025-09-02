@@ -15,7 +15,7 @@ export type Order = {
   email: string;
   tel: string;
   date: string;
-  hour: string;
+  pickupHour: string;
   message: string;
   status: 'Pendente' | 'Entregue';
   payment: 'Pago' | 'Pendente';

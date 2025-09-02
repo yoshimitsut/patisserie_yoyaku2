@@ -139,17 +139,17 @@ export default function OrderCake() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
   const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
-    control: (provided, state) => ({
+    control: (provided) => ({
       ...provided,
-      borderColor: state.isFocused ? '#FF7F50' : '#ccc',
+      // borderColor: state.isFocused ? '#FF7F50' : '#ccc',
       boxShadow: 'none',
       border: '1px solid #000',
       borderRadius: '10px',
       paddingTop: '10px',
       paddingBottom: '10px',
-      '&:hover': {
-        borderColor: '#FF7F50',
-      },
+      // '&:hover': {
+      //   borderColor: '#FF7F50',
+      // },
     }),
   }
 
@@ -168,34 +168,49 @@ export default function OrderCake() {
     const data = {
       // id_client: Math.random().toString(36).substring(2, 8),
       id_client,
-      first_name: (document.getElementById("firstname") as HTMLInputElement).value,
-      last_name: (document.getElementById("lastname") as HTMLInputElement).value,
+      first_name: (document.getElementById("first-name") as HTMLInputElement).value,
+      last_name: (document.getElementById("last-name") as HTMLInputElement).value,
       email: (document.getElementById("email") as HTMLInputElement).value,
       tel,
       // date: (document.getElementById("date") as HTMLSelectElement).value,
       date: selectedDate?.toISOString().split('T')[0] || "",
-      pickupHour: (document.getElementById("pickupHour") as HTMLSelectElement).value,
+      pickupHour,
       message: (document.getElementById("message") as HTMLTextAreaElement).value,
       cakes: cakes.map(c => {
         const cakeData = cakesData.cakes.find(cake => Number(cake.id_cake) === Number(c.cake));
         return {
-          ...cakeData,
+          id_cake: cakeData?.id_cake,
+          name: cakeData?.name,
+          size: c.size,
           amount: parseInt(c.quantity)
         };
       })
     };
-
+    
     try {
-      const res = await fetch(`${API_URL}/api/reserva`, {
+      const res = await fetch(`${API_URL}/api/reservar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
+      
       const result = await res.json();
       if (result.success) {
         // setOrderId(result.id); // armazena o id do pedido
         alert(`送信が完了しました！受付番号: ${result.id}`);
+        
+        // Limpar campos controlados
+        setCakes([{ cake: String(cakesData.cakes[0].id_cake), quantity: "1", size: "" }]);
+        setSelectedDate(null);
+        setPickupHour("時間を選択");
+
+        // Limpar campos não controlados
+        (document.getElementById("first-name") as HTMLInputElement).value = "";
+        (document.getElementById("last-name") as HTMLInputElement).value = "";
+        (document.getElementById("email") as HTMLInputElement).value = "";
+        (document.getElementById("tel") as HTMLInputElement).value = "";
+        (document.getElementById("message") as HTMLTextAreaElement).value = "";
+
       }
 
     } catch (error) {
@@ -311,7 +326,7 @@ export default function OrderCake() {
               </div>
               <div className='name-label input-group'>
                   <label htmlFor="first-name">*名(カタカナ)</label>
-                  <input type="text" name="lastname" id="lastname" placeholder="タロウ" required/>
+                  <input type="text" name="last-name" id="last-name" placeholder="タロウ" required/>
               </div>
               <div className='input-group'>
                 <label htmlFor="email">*メールアドレス</label>
@@ -391,7 +406,9 @@ export default function OrderCake() {
           </div>
 
           <div className='btn-div'>
-            <button type='submit' className='send btn' disabled={isSubmitting}>
+            <button type='submit' className='send btn' 
+            disabled={isSubmitting}
+            >
               {isSubmitting ? "送信中..." : "送信"}
             </button>
           </div>
