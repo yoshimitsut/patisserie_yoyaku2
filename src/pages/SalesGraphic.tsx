@@ -26,7 +26,7 @@ type Order = {
 };
 
 export default function SalesGraphic() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [, setOrders] = useState<Order[]>([]);
   const [salesData, setSalesData] = useState<{ date: string; total: number }[]>([]);
 
   useEffect(() => {
