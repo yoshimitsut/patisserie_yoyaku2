@@ -80,7 +80,43 @@ export default function ListOrder() {
       o.tel.includes(search)
   );
 
+  const groupedOrders = filteredOrders.reduce((acc: Record<string,Order[]>, order) => {
+    if (!acc[order.date]) {
+      acc[order.date] = []
+    }
+    acc[order.date].push(order);
+    return acc;
+  }, {});
+
+  // transforma em array e ordena pelas datas
+  const sortedGroupedOrders = Object.entries(groupedOrders).sort(
+    ([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime()
+  );
+
+
   function handleStatusChange(id_order: number, newStatus: "1" | "2" | "3" | "4") {
+    const order = orders.find((o) => o.id_order === id_order);
+    if(!order) return;
+
+    const statusMap: Record<string, string> = {
+      "1": "未",
+      "2": "ネット決済済",
+      "3": "店頭支払い済",
+      "4": "お渡し済",
+    };
+
+    const currentStatus = statusMap[order.status ?? "1"];
+    const nextStatus = statusMap[newStatus];
+
+    const confirmed = window.confirm(
+      `本当にステータスを変更しますか？\n\n` +
+      `受付番号: ${order.id_order}\n` +
+      `お名前: ${order.first_name} ${order.last_name}\n\n` +
+      `${currentStatus} → ${nextStatus}`
+    );
+
+    if (!confirmed) return;
+
     setOrders((oldOrder) =>
       oldOrder.map((order) => 
         order.id_order === id_order ? {...order, status: newStatus } : order
@@ -150,60 +186,117 @@ export default function ListOrder() {
     {filteredOrders.length === 0 ? (
       <p>注文が見つかりません。</p>
     ) : (
-      <table className='list-order-table'>
-        <thead>
-          <tr>
-            <th>受付番号</th>
-            <th>お会計</th>
-            <th>お名前</th>
-            <th>ご注文のケーキ</th>
-            <th>受け取り希望時間</th>
-            <th>メッセージ</th>
-            <th>電話番号</th>
-          </tr>
-        </thead>
+      sortedGroupedOrders.map(([date, ordersForDate]) => (
+        <div key={date} style={{ marginBottom: "2rem" }}>
+          <h3 style={{ background: "#f0f0f0", padding: "8px" }}>{date}</h3>
 
-        <tbody>
-          {filteredOrders.map((order) => (
-            <tr key={order.id_order}>
-              <td>{order.id_order}</td>
-              <td>
-                <select name="" id=""
-                  value={order.status}
-                  onChange={(e) => handleStatusChange(order.id_order, String(e.target.value) as "1" | "2")}
-                  >
-                    <option value={1}>未</option>
-                    <option value={2}>ネット決済済</option>
-                    <option value={3}>店頭支払い済</option>
-                    <option value={4}>お渡し済</option>
-                </select>
-              </td>
-              <td>
-                {order.first_name} {order.last_name} <br />
-                <small> ID: {order.id_client} </small>
-              </td>
-              <td>
-                <ul>
-                  {order.cakes.map((cake, index) => (
-                    <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
-                      {cake.name} - 個数: {cake.amount} <br /> {cake.size}
-                    </li>
-                  ))}
-                </ul>
-              </td>
-              <td>
-                {order.date} <br /> 
-                {order.pickupHour}
-              </td>
-              <td>{order.message || ' '}</td>
-              <td>
-                {order.tel}
-              </td>
-            </tr>
-          ))}
+            <table className="list-order-table">
+              <thead>
+                <tr>
+                  <th>受付番号</th>
+                  <th>お会計</th>
+                  <th>お名前</th>
+                  <th>ご注文のケーキ</th>
+                  <th>受け取り希望時間</th>
+                  <th>メッセージ</th>
+                  <th>電話番号</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ordersForDate.map((order) => (
+                  <tr key={order.id_order}>
+                    <td>{order.id_order}</td>
+                    <td>
+                      <select
+                        value={order.status}
+                        onChange={(e) =>
+                          handleStatusChange(order.id_order, e.target.value as "1" | "2" | "3" | "4")
+                        }
+                      >
+                        <option value="1">未</option>
+                        <option value="2">ネット決済済</option>
+                        <option value="3">店頭支払い済</option>
+                        <option value="4">お渡し済</option>
+                      </select>
+                    </td>
+                    <td>
+                      {order.first_name} {order.last_name}
+                      <br />
+                      <small>ID: {order.id_client}</small>
+                    </td>
+                    <td>
+                      <ul>
+                        {order.cakes.map((cake, index) => (
+                          <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
+                            {cake.name} - 個数: {cake.amount} <br /> {cake.size}
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
+                    <td>{order.pickupHour}</td>
+                    <td>{order.message || " "}</td>
+                    <td>{order.tel}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))
 
-        </tbody>
-      </table>
+      // <table className='list-order-table'>
+      //   <thead>
+      //     <tr>
+      //       <th>受付番号</th>
+      //       <th>お会計</th>
+      //       <th>お名前</th>
+      //       <th>ご注文のケーキ</th>
+      //       <th>受け取り希望時間</th>
+      //       <th>メッセージ</th>
+      //       <th>電話番号</th>
+      //     </tr>
+      //   </thead>
+
+      //   <tbody>
+      //     {filteredOrders.map((order) => (
+      //       <tr key={order.id_order}>
+      //         <td>{order.id_order}</td>
+      //         <td>
+      //           <select name="" id=""
+      //             value={order.status}
+      //             onChange={(e) => handleStatusChange(order.id_order, String(e.target.value) as "1" | "2")}
+      //             >
+      //               <option value={1}>未</option>
+      //               <option value={2}>ネット決済済</option>
+      //               <option value={3}>店頭支払い済</option>
+      //               <option value={4}>お渡し済</option>
+      //           </select>
+      //         </td>
+      //         <td>
+      //           {order.first_name} {order.last_name} <br />
+      //           <small> ID: {order.id_client} </small>
+      //         </td>
+      //         <td>
+      //           <ul>
+      //             {order.cakes.map((cake, index) => (
+      //               <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
+      //                 {cake.name} - 個数: {cake.amount} <br /> {cake.size}
+      //               </li>
+      //             ))}
+      //           </ul>
+      //         </td>
+      //         <td>
+      //           {order.date} <br /> 
+      //           {order.pickupHour}
+      //         </td>
+      //         <td>{order.message || ' '}</td>
+      //         <td>
+      //           {order.tel}
+      //         </td>
+      //       </tr>
+      //     ))}
+
+      //   </tbody>
+      // </table>
 
     )}
 
