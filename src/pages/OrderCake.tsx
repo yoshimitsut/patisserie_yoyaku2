@@ -41,7 +41,7 @@ export default function OrderCake() {
           <div className='notice'>
             <div className='selectable'></div>
             {/* <div style={{ padding: "20px" }}> */}
-              <span>予約可能日  /  <span className='yassumi'>x</span> 休業日</span>
+              <span>予約可能日  /  <span className='yassumi'>x</span> 予約不可</span>
             {/* </div> */}
           </div>
         </div>
@@ -221,6 +221,14 @@ export default function OrderCake() {
     }
   }
 
+  const [, setText] = useState("");
+
+  function toKatakana(str: string) {
+    return str.replace(/[\u3041-\u3096]/g, (ch) =>
+      String.fromCharCode(ch.charCodeAt(0) + 0x60)
+    );
+  }
+  
   return (
     <div className='reservation-main'>
       <div className="container">
@@ -241,6 +249,8 @@ export default function OrderCake() {
               
               return(
               <div className="box-cake" key={`${item.cake}-${index}`} >
+                {index > 0 && (
+                <div className='btn-remove-div'>
                 <button 
                   type="button" 
                   onClick={() => removeCake(index)} 
@@ -248,7 +258,8 @@ export default function OrderCake() {
                   >
                     ❌
                   </button>
-
+                </div>
+                )}
                 {selectedCakeData && (
                   <img 
                     className='img-cake-order' 
@@ -322,7 +333,9 @@ export default function OrderCake() {
             <div className="full-name">
               <div className='name-label input-group'>
                   <label htmlFor="name-label">*姓(カタカナ)</label>
-                  <input type="text" name="first-name" id="first-name" placeholder="ヒガ" required/>
+                  <input type="text" name="first-name" id="first-name" placeholder="ヒガ" 
+                  lang='ja' autoCapitalize='none' autoCorrect='off' onChange={(e) => setText(toKatakana(e.target.value))}
+                  required/>
               </div>
               <div className='name-label input-group'>
                   <label htmlFor="first-name">*名(カタカナ)</label>

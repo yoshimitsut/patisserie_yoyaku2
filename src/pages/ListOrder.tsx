@@ -1,6 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Html5QrcodeScanner } from 'html5-qrcode';
+import Select from "react-select";
+
+import type { StylesConfig, SingleValue } from 'react-select';
+
 import './ListOrder.css';
 
 type Cake = {
@@ -26,22 +30,22 @@ type Order = {
   status?:string; 
 };
 
-
-
 export default function ListOrder() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showScanner, setShowScanner] = useState(false);
   const [scannedOrder, setScannedOrder] = useState<Order | null>(null);
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
-
+  
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/list`)
       .then((res) => res.json())
       .then((data) => setOrders(data))
       .catch((error: unknown) => {
         console.error('Erro ao carregar pedidos:', error);
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -72,26 +76,52 @@ export default function ListOrder() {
     }
   }, [showScanner]);
 
-  const filteredOrders = orders.filter(
-    (o) => 
+  const filteredOrders = useMemo(() => {
+    return orders.filter((o) =>
       o.first_name.toLowerCase().includes(search.toLowerCase()) ||
       o.last_name.toLowerCase().includes(search.toLowerCase()) ||
       o.id_client.includes(search) || 
       o.tel.includes(search)
-  );
+    );
+  }, [orders, search]);
 
-  const groupedOrders = filteredOrders.reduce((acc: Record<string,Order[]>, order) => {
-    if (!acc[order.date]) {
-      acc[order.date] = []
-    }
-    acc[order.date].push(order);
-    return acc;
-  }, {});
+  const groupedOrders = useMemo(() => {
+    return filteredOrders.reduce((acc: Record<string, Order[]>, order) => {
+      if (!acc[order.date]) acc[order.date] = [];
+      acc[order.date].push(order);
+      return acc;
+    }, {});
+  }, [filteredOrders]);
 
   // transforma em array e ordena pelas datas
-  const sortedGroupedOrders = Object.entries(groupedOrders).sort(
-    ([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime()
-  );
+  const sortedGroupedOrders = useMemo(() => {
+    return Object.entries(groupedOrders).sort(
+      ([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime()
+    );
+  }, [groupedOrders]);
+
+  type StatusOption = {
+    value: "1" | "2" | "3" | "4";
+    label: string;
+  };
+
+  const statusOptions: StatusOption[] = [
+    { value: "1", label: "未" },
+    { value: "2", label: "ネット決済済" },
+    { value: "3", label: "店頭支払い済" },
+    { value: "4", label: "お渡し済" },
+  ];
+
+
+  function extrairPreco(size: string[] | string): number {
+    const text = Array.isArray(size) ? size[0] : size;
+    const normalized = text.replace(/[０-９]/g, (c) =>
+      String.fromCharCode(c.charCodeAt(0) - 0xFEE0)
+    );
+    const match = normalized.match(/￥([\d,]+)/);
+    if (!match) return 0;
+    return Number(match[1].replace(/,/g, ""));
+  }
 
 
   function handleStatusChange(id_order: number, newStatus: "1" | "2" | "3" | "4") {
@@ -109,7 +139,7 @@ export default function ListOrder() {
     const nextStatus = statusMap[newStatus];
 
     const confirmed = window.confirm(
-      `本当にステータスを変更しますか？\n\n` +
+      `(確認)ステータスを変更しますか？\n\n` +
       `受付番号: ${order.id_order}\n` +
       `お名前: ${order.first_name} ${order.last_name}\n\n` +
       `${currentStatus} → ${nextStatus}`
@@ -131,176 +161,209 @@ export default function ListOrder() {
       },
       body:JSON.stringify({ status: newStatus }),
     })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("Statos atualizado no Servidor:", data);
-      })
-      .catch((err) => {
-        console.log("Erro ao atualizar status", err)
-      })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Statos atualizado no Servidor:", data);
+    })
+    .catch((err) => {
+      console.log("Erro ao atualizar status", err)
+    })
   }
+
+  const customStyles: StylesConfig<StatusOption, false> = {
+  control: (provided, state) => ({
+    ...provided,
+    borderRadius: 8,
+    borderColor: state.isFocused ? "#007bff" : "#ccc",
+    boxShadow: state.isFocused ? "0 0 0 2px rgba(0,123,255,0.25)" : "none",
+    minHeight: 36,
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected
+      ? "#007bff"
+      : state.isFocused
+      ? "#e9f3ff"
+      : "white",
+    color: state.isSelected ? "white" : "black",
+  }),
+  dropdownIndicator: (provided) => ({
+    ...provided,
+    padding: "1px",
+  }),
+};
 
   return (
     <div className='list-order-container'>
-      <div>
-
+      <div className="list-order-actions">
+        
         <input 
-          type="text" 
-          placeholder='検索：お名前、電話番号、受付番号などを入力'
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className='list-order-input'
+            type="text" 
+            placeholder='検索：お名前、電話番号、受付番号などを入力'
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className='list-order-input'
           />
-          <button 
-            onClick={() => setShowScanner(true)} 
-            className='list-btn'
-          >
+        <div className='btn-actions'>
+          <button onClick={() => setShowScanner(true)} className='list-btn'>
             <img src="/icons/qrCodeImg.avif" alt="qrcode image" />
           </button>
-          <button 
-            onClick={() => navigate("/graphic")} 
-            className='list-btn'
-          >
+          <button onClick={() => navigate("/graphic")} className='list-btn'>
             <img src="/icons/table.avif" alt="graphic image" />
           </button>
+        </div>
       </div>
-    
-    {scannedOrder && (
-      <div style={{ border: '1px solid #007bff', padding: 12, marginBottom:20 }}>
-        <strong></strong><br />
-        <strong>受付番号: </strong> {scannedOrder.id_order}<br />
-        <strong>お名前: </strong> {scannedOrder.first_name} {scannedOrder.last_name}<br />
-        <strong>電話番号: </strong> {scannedOrder.tel}<br />
-        <strong>受取日: </strong> {scannedOrder.date} - {scannedOrder.pickupHour}<br />
-        <strong>ご注文のケーキ: </strong> 
-          <ul>
+      
+      {showScanner && (
+        <div id="reader" style={{ width: '300px', marginBottom: 20 }}></div>
+      )}
+
+      {scannedOrder && (
+        <div style={{ border: '1px solid #007bff', padding: 12, marginBottom:20 }}>
+          <strong>
+            <Select
+              options={statusOptions}
+              value={statusOptions.find((opt) => opt.value === scannedOrder.status)}
+              onChange={(selected) =>
+                handleStatusChange(
+                  scannedOrder.id_order,
+                  selected?.value as "1" | "2" | "3" | "4"
+                )
+              }
+              styles={customStyles}
+              isSearchable={false}
+            />
+          </strong>
+          <strong>受付番号: </strong> {scannedOrder.id_order}<br />
+          <strong>お名前: </strong> {scannedOrder.first_name} {scannedOrder.last_name}<br />
+          <strong>電話番号: </strong> {scannedOrder.tel}<br />
+          <strong>受取日: </strong> {scannedOrder.date} - {scannedOrder.pickupHour}<br />
+          <strong>ご注文のケーキ: </strong> 
+          <ul className='cake-list'>
             {scannedOrder.cakes.map((cake) => (
               <li key={cake.id_cake}>
                 {cake.name} - 個数: {cake.amount} - ¥{cake.size}
               </li>
             ))}
           </ul>
-      </div>
-    )}
+        </div>
+      )}
 
-    {filteredOrders.length === 0 ? (
-      <p>注文が見つかりません。</p>
-    ) : (
-      sortedGroupedOrders.map(([date, ordersForDate]) => (
-        <div key={date} style={{ marginBottom: "2rem" }}>
-          <h3 style={{ background: "#f0f0f0", padding: "8px" }}>{date}</h3>
+      {loading ? (
+        <p>Loading...</p>  
+      ) : filteredOrders.length === 0 ? (
+        <p>注文が見つかりません。</p>
+      ) : (
+        <>
+          {/* Tabelas (desktop) */}
+          {sortedGroupedOrders.map(([date, ordersForDate]) => {
+            const totalProdutos = ordersForDate.reduce(
+              (sum, order) => sum + order.cakes.reduce((s, c) => s + c.amount, 0),
+              0
+            );
 
-            <table className="list-order-table">
-              <thead>
-                <tr>
-                  <th>受付番号</th>
-                  <th>お会計</th>
-                  <th>お名前</th>
-                  <th>ご注文のケーキ</th>
-                  <th>受け取り希望時間</th>
-                  <th>メッセージ</th>
-                  <th>電話番号</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ordersForDate.map((order) => (
-                  <tr key={order.id_order}>
-                    <td>{order.id_order}</td>
-                    <td>
-                      <select
-                        value={order.status}
-                        onChange={(e) =>
-                          handleStatusChange(order.id_order, e.target.value as "1" | "2" | "3" | "4")
-                        }
-                      >
-                        <option value="1">未</option>
-                        <option value="2">ネット決済済</option>
-                        <option value="3">店頭支払い済</option>
-                        <option value="4">お渡し済</option>
-                      </select>
-                    </td>
-                    <td>
-                      {order.first_name} {order.last_name}
-                      <br />
-                      <small>ID: {order.id_client}</small>
-                    </td>
-                    <td>
-                      <ul>
-                        {order.cakes.map((cake, index) => (
-                          <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
-                            {cake.name} - 個数: {cake.amount} <br /> {cake.size}
-                          </li>
-                        ))}
-                      </ul>
-                    </td>
-                    <td>{order.pickupHour}</td>
-                    <td>{order.message || " "}</td>
-                    <td>{order.tel}</td>
+            const totalValor = ordersForDate.reduce(
+              (sum, order) =>
+                sum +
+                order.cakes.reduce((s, c) => s + extrairPreco(c.size) * c.amount, 0),
+              0
+            );
+            return (
+            <div key={date} className="table-wrapper">
+              <h3 style={{ background: "#f0f0f0", padding: "8px" }}>{date}</h3>
+              <table className="list-order-table">
+                <thead>
+                  <tr>
+                    <th>受付番号</th>
+                    <th className='situation-cell'>お会計</th>
+                    <th>お名前</th>
+                    <th>ご注文のケーキ</th>
+                    <th>受け取り希望時間</th>
+                    <th>メッセージ</th>
+                    <th>電話番号</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {ordersForDate.map((order) => (
+                    <tr key={order.id_order}>
+                      <td>{order.id_order}</td>
+                      <td>
+                        <Select<StatusOption, false>
+                          options={statusOptions}
+                          value={statusOptions.find((opt) => opt.value === order.status)}
+                          onChange={(selected: SingleValue<StatusOption>) => {
+                            if (selected) handleStatusChange(order.id_order, selected.value);
+                          }}
+                          styles={customStyles}
+                          isSearchable={false}
+                        />
+                      </td>
+                      <td>
+                        {order.first_name} {order.last_name}
+                        <br />
+                        <small>ID: {order.id_client}</small>
+                      </td>
+                      <td>
+                        <ul>
+                          {order.cakes.map((cake, index) => (
+                            <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
+                              {cake.name} - 個数: {cake.amount} <br /> {cake.size}
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
+                      <td>{order.pickupHour}</td>
+                      <td>{order.message || " "}</td>
+                      <td>{order.tel}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {/* Totais por dia */}
+              <div className="day-summary">
+                <strong>合計商品数: </strong> {totalProdutos} 個
+                <br />
+                <strong>合計金額: </strong> ¥{totalValor.toLocaleString()}
+              </div>
+            </div>
+            );  
+        })}
+
+          {/* Cards (mobile) */}
+          <div className="mobile-orders">
+            {filteredOrders.map((order) => (
+              <div className="order-card" key={order.id_order}>
+                <div className="order-header">
+                  <span>受付番号: {order.id_order}</span>
+                  <span>{order.status}</span>
+                </div>
+                  <Select
+                    options={statusOptions}
+                    value={statusOptions.find((opt) => opt.value === order.status)}
+                    onChange={(selected) =>
+                      handleStatusChange(order.id_order, selected?.value as "1" | "2" | "3" | "4")
+                    }
+                  />
+                <p>お名前: {order.first_name} {order.last_name}</p>
+                <p>受取日: {order.date} {order.pickupHour}</p>
+                <details>
+                  <summary>ご注文内容</summary>
+                  <ul>
+                    {order.cakes.map((cake) => (
+                      <li key={cake.id_cake}>
+                        {cake.name} - 個数: {cake.amount} - {cake.size}
+                      </li>
+                    ))}
+                  </ul>
+                  <p>電話番号: {order.tel}</p>
+                  <p>メッセージ: {order.message || " "}</p>
+                </details>
+              </div>
+            
+            ))}
           </div>
-        ))
-
-      // <table className='list-order-table'>
-      //   <thead>
-      //     <tr>
-      //       <th>受付番号</th>
-      //       <th>お会計</th>
-      //       <th>お名前</th>
-      //       <th>ご注文のケーキ</th>
-      //       <th>受け取り希望時間</th>
-      //       <th>メッセージ</th>
-      //       <th>電話番号</th>
-      //     </tr>
-      //   </thead>
-
-      //   <tbody>
-      //     {filteredOrders.map((order) => (
-      //       <tr key={order.id_order}>
-      //         <td>{order.id_order}</td>
-      //         <td>
-      //           <select name="" id=""
-      //             value={order.status}
-      //             onChange={(e) => handleStatusChange(order.id_order, String(e.target.value) as "1" | "2")}
-      //             >
-      //               <option value={1}>未</option>
-      //               <option value={2}>ネット決済済</option>
-      //               <option value={3}>店頭支払い済</option>
-      //               <option value={4}>お渡し済</option>
-      //           </select>
-      //         </td>
-      //         <td>
-      //           {order.first_name} {order.last_name} <br />
-      //           <small> ID: {order.id_client} </small>
-      //         </td>
-      //         <td>
-      //           <ul>
-      //             {order.cakes.map((cake, index) => (
-      //               <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
-      //                 {cake.name} - 個数: {cake.amount} <br /> {cake.size}
-      //               </li>
-      //             ))}
-      //           </ul>
-      //         </td>
-      //         <td>
-      //           {order.date} <br /> 
-      //           {order.pickupHour}
-      //         </td>
-      //         <td>{order.message || ' '}</td>
-      //         <td>
-      //           {order.tel}
-      //         </td>
-      //       </tr>
-      //     ))}
-
-      //   </tbody>
-      // </table>
-
-    )}
-
+        </>
+      )}
     </div>
   );
-}
-
+};

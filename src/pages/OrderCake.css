@@ -91,7 +91,13 @@ body {
       align-items: center;
     }
     
+    .btn-remove-div {
+      height: 30px;
+      padding-bottom: 20px;
+    }
+
     .btn-remove-cake {
+      padding-top: 30px;
       position: absolute;
       top: 8px;
       right: 8px;
@@ -210,10 +216,10 @@ body {
 
   .selectable {
     border: 4px solid red;
-    width: 4vw;
+    width: 3vw;
     aspect-ratio: 1 / 1;
     border-radius: 50%; 
-    max-width: 22px;
+    max-width: 20px;
     margin-top: 2px;
   }
   
@@ -295,10 +301,11 @@ body {
       cursor: pointer;
       border-radius: 10px;
       font-size: 18px;
-      background-color: #d2d2d2;
+      background-color: #2f2c2c;
+      color: #fff;
     }
     .btn:hover{
-      background-color: #bec3c4;
+      background-color: #131313d2;
     }
 
     .send {

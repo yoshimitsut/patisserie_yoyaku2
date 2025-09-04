@@ -1,3 +1,19 @@
+.list-order-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20px;
+}
+
+.btn-actions {
+  gap: 10px;
+  display: flex;
+}
+
+.cake-list li {
+  list-style: none;
+}
+
 .list-order-container {
   max-width: 1000px;
   margin: 0 auto;
@@ -5,7 +21,7 @@
 }
 
 .list-order-input {
-  margin-bottom: 20px;
+  /* margin-bottom: 20px; */
   padding: 8px;
   width: 100%;
   max-width: 400px;
@@ -79,5 +95,51 @@
 
   img {
     width: 30px;
+  }
+}
+
+.situation-cell {
+  width: 131px;
+}
+
+/* Esconde cards no desktop */
+.mobile-orders {
+  display: none;
+}
+
+/* Esconde tabela no mobile */
+.table-wrapper {
+  display: block;
+}
+
+/* Card estilo mobile */
+.order-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 1rem;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.order-id {
+  font-weight: bold;
+  color: #333;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .table-wrapper {
+    display: none;
+  }
+  .mobile-orders {
+    display: block;
   }
 }
