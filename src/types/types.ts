@@ -1,10 +1,19 @@
+import type { ReactNode } from "react";
 // types.ts (ou no topo do seu App.tsx)
+
+export type SizeOption = {
+  size: string;
+  price: number;
+};
+
 export type Cake = {
   id_cake: number;
   name: string;
+  sizes: SizeOption[];
   quantity: number;
-  price: number;
   image: string;
+  price: number;
+  message_cake: string;
 };
 
 export type Order = {
@@ -15,6 +24,7 @@ export type Order = {
   email: string;
   tel: string;
   date: string;
+  date_order: string;
   pickupHour: string;
   message: string;
   status: 'Pendente' | 'Entregue';
@@ -23,4 +33,24 @@ export type Order = {
     id_cake: number;
     amount: number;
   }[];
+};
+
+
+
+
+export type CakeOrder = {
+  cake: string;
+  quantity: string;
+  size: string;
+  price: number;
+}
+
+export type OptionType = {
+  value: string;
+  label: string;
+};
+
+export type MyContainerProps = {
+  className?: string;
+  children?: ReactNode;
 };

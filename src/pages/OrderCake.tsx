@@ -1,32 +1,18 @@
 import { useState } from 'react';
 import cakesData from '../data/cake.json';
 import Select from 'react-select';
-import "./OrderCake.css";
 import DatePicker, { CalendarContainer } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ja } from 'date-fns/locale';
 // import { data } from 'react-router-dom';
 import { addDays, isAfter, isSameDay, getDay } from 'date-fns';
 import type { StylesConfig, GroupBase } from 'react-select';
-import type { ReactNode } from "react";
+
+import type {CakeOrder, OptionType, MyContainerProps } from "../types/types.ts"
+import "./OrderCake.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-type CakeOrder = {
-  cake: string;
-  quantity: string;
-  size: string;
-}
-
-type OptionType = {
-  value: string;
-  label: string;
-};
-
-type MyContainerProps = {
-  className?: string;
-  children?: ReactNode;
-};
 
 export default function OrderCake() {
   
@@ -40,9 +26,7 @@ export default function OrderCake() {
             </div>
           <div className='notice'>
             <div className='selectable'></div>
-            {/* <div style={{ padding: "20px" }}> */}
               <span>予約可能日  /  <span className='yassumi'>x</span> 予約不可</span>
-            {/* </div> */}
           </div>
         </div>
       </div>
@@ -50,33 +34,41 @@ export default function OrderCake() {
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // opções de bolo
   const cakeOptions: OptionType[] = cakesData.cakes.map(c => ({
     value: String(c.id_cake),
     label: c.name
   }));
 
+  // estado dos bolos escolhidos
   const [cakes, setCakes] = useState<CakeOrder[]>([
-    {cake: String(cakesData.cakes[0].id_cake), quantity: "1", size: ""},
+    {cake: String(cakesData.cakes[0].id_cake), quantity: "1", size: "", price: 1},
   ]);
   
+  // opções de quantidade
   const quantityOptions: OptionType[] = Array.from({ length: 10 }, (_, i) => ({
     value: String(i + 1),
     label: String(i + 1),
   }));
 
+  // adicionar bolos
   const addCake = () => {
-    setCakes(prev => [...prev, {cake: "0", quantity: "1", size: ""}]);
+    setCakes(prev => [...prev, {cake: "0", quantity: "1", size: "", price: 1}]);
   };
   
+  // remover bolos
   const removeCake = (index: number) => {
     setCakes(prev => prev.filter((_, i) => i !== index))
   };
 
+  // atualizar campo de um bolo
   const updateCake = (index: number, field: keyof CakeOrder, value: string) => {
     setCakes(prev => 
       prev.map((item, i) => (i === index ? {...item, [field]: value } : item))
     );
   };
+
   const [pickupHour, setPickupHour] = useState("時間を選択");
 
   const hoursOptions = [
@@ -141,22 +133,19 @@ export default function OrderCake() {
   const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
     control: (provided) => ({
       ...provided,
-      // borderColor: state.isFocused ? '#FF7F50' : '#ccc',
       boxShadow: 'none',
       border: '1px solid #000',
       borderRadius: '10px',
       paddingTop: '10px',
       paddingBottom: '10px',
-      // '&:hover': {
-      //   borderColor: '#FF7F50',
-      // },
     }),
   }
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.blur(); // impede abrir teclado no celular
   };
-
+  
+  // envio do formulário
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -164,6 +153,7 @@ export default function OrderCake() {
     const telInput = (document.getElementById("tel") as HTMLInputElement).value;
     const tel = telInput.replace(/\D/g, '');
     const id_client = tel.slice(-4);
+    const date_order = new Date();
 
     const data = {
       // id_client: Math.random().toString(36).substring(2, 8),
@@ -174,6 +164,7 @@ export default function OrderCake() {
       tel,
       // date: (document.getElementById("date") as HTMLSelectElement).value,
       date: selectedDate?.toISOString().split('T')[0] || "",
+      date_order,
       pickupHour,
       message: (document.getElementById("message") as HTMLTextAreaElement).value,
       cakes: cakes.map(c => {
@@ -182,6 +173,7 @@ export default function OrderCake() {
           id_cake: cakeData?.id_cake,
           name: cakeData?.name,
           size: c.size,
+          price: c.price,
           amount: parseInt(c.quantity)
         };
       })
@@ -200,7 +192,7 @@ export default function OrderCake() {
         alert(`送信が完了しました！受付番号: ${result.id}`);
         
         // Limpar campos controlados
-        setCakes([{ cake: String(cakesData.cakes[0].id_cake), quantity: "1", size: "" }]);
+        setCakes([{ cake: String(cakesData.cakes[0].id_cake), quantity: "1", size: "", price: 1 }]);
         setSelectedDate(null);
         setPickupHour("時間を選択");
 
@@ -243,8 +235,10 @@ export default function OrderCake() {
               );
               
               const sizeOptions: OptionType[] = 
-                Array.isArray(selectedCakeData?.size)
-                ? selectedCakeData.size.map(s => ({ value: s, label: s }))
+                Array.isArray(selectedCakeData?.sizes)
+                ? selectedCakeData.sizes.map(s => ({ 
+                    value: JSON.stringify({ size: s.size, price: s.price }), 
+                    label: `${s.size} ￥${s.price.toLocaleString()}` }))
                 : [];
               
               return(
@@ -289,10 +283,20 @@ export default function OrderCake() {
                     <Select<OptionType>
                       options = {sizeOptions}
                       value={item.size
-                        ? { value: item.size, label: item.size } : null
-                      }
-                      onChange={selected => 
-                        updateCake(index, "size", selected?.value || "")
+                        ? { 
+                          value: JSON.stringify({ size: item.size, price: item.price }), 
+                          label: `${item.size} ￥${item.price}` } : null
+                        }
+                        onChange={selected => {
+                          if (selected) {
+                            const parsed = JSON.parse(selected.value);
+                            setCakes(prev =>
+                              prev.map((c, i) =>
+                                i === index ? { ...c, size: parsed.size, price: parsed.price } : c
+                              )
+                            );
+                          }
+                        } 
                       }
                       classNamePrefix='react-select'
                       placeholder='サイズを選択'
@@ -317,7 +321,12 @@ export default function OrderCake() {
                   />
                   <label className='select-group'>*個数:</label>
                 </div>
-                
+
+                <div className='input-group'>
+                  <label htmlFor="message-cake">その他</label>
+                  <textarea name="message-cake" id="message-cake" placeholder="メッセージプレートの内容など"></textarea>
+                </div>
+
                 <div className='btn-div'>
                   <button type='button' onClick={addCake} className='btn btn-add-cake'>
                     ➕ 別のケーキを追加
