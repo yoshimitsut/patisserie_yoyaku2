@@ -205,14 +205,21 @@ export default function ListOrder() {
             onChange={(e) => setSearch(e.target.value)}
             className='list-order-input'
           />
+        
         <Select 
           options={[
             { value: "date", label: "日付ごと" },   // por data
             { value: "order", label: "注文順" },   // por ordem
           ]}
-          value={{ value: viewMode, label: viewMode === "date" ? "日付ごと" : "注文順" }}
+          value={
+            { value: viewMode, 
+              label: viewMode === "date" ? "日付ごと" : "注文順", 
+            }}
           onChange={(opt) => setViewMode(opt?.value as "date" | "order")}
+          isSearchable={false}
+          styles={{ container: (base) => ({ ...base, wiidth: 200 }) }}
         />
+
         <div className='btn-actions'>
           <button onClick={() => setShowScanner(true)} className='list-btn'>
             <img src="/icons/qrCodeImg.avif" alt="qrcode image" />
@@ -266,6 +273,9 @@ export default function ListOrder() {
         <p>注文が見つかりません。</p>
       ) : (
         <>
+          { viewMode === "date" } ? (
+
+          
           {/* Tabelas (desktop) */}
           {sortedGroupedOrders.map(([date, ordersForDate]) => {
             const totalProdutos = ordersForDate.reduce(
@@ -337,6 +347,57 @@ export default function ListOrder() {
             </div>
             );  
         })}
+      ) : ) : (
+  <div className="table-wrapper">
+    <h3>注文順</h3>
+    <table className="list-order-table">
+      <thead>
+        <tr>
+          <th>受付番号</th>
+          <th className="situation-cell">お会計</th>
+          <th>お名前</th>
+          <th>ご注文のケーキ</th>
+          <th>受け取り希望時間</th>
+          <th>メッセージ</th>
+          <th>電話番号</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filteredOrders
+          .sort((a, b) => a.id_order - b.id_order)
+          .map((order) => (
+          <tr key={order.id_order}>
+            <td>{String(order.id_order).padStart(4, "0")}</td>
+            <td>
+              <Select<StatusOption, false>
+                options={statusOptions}
+                value={statusOptions.find((opt) => opt.value === order.status)}
+                onChange={(selected: SingleValue<StatusOption>) => {
+                  if (selected) handleStatusChange(order.id_order, selected.value);
+                }}
+                styles={customStyles}
+                isSearchable={false}
+              />
+            </td>
+            <td>{order.first_name} {order.last_name}</td>
+            <td>
+              <ul>
+                {order.cakes.map((cake, i) => (
+                  <li key={`${order.id_order}-${cake.id_cake}-${i}`}>
+                    {cake.name} - 個数: {cake.amount} <br /> {cake.size}
+                  </li>
+                ))}
+              </ul>
+            </td>
+            <td>{order.pickupHour}</td>
+            <td>{order.message || " "}</td>
+            <td>{order.tel}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)
 
           {/* Cards (mobile) */}
           <div className="mobile-orders">
