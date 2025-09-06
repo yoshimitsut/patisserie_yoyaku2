@@ -36,6 +36,7 @@ export default function ListOrder() {
   const [showScanner, setShowScanner] = useState(false);
   const [scannedOrder, setScannedOrder] = useState<Order | null>(null);
   const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<"date" | "order">("order");
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -171,27 +172,27 @@ export default function ListOrder() {
   }
 
   const customStyles: StylesConfig<StatusOption, false> = {
-  control: (provided, state) => ({
-    ...provided,
-    borderRadius: 8,
-    borderColor: state.isFocused ? "#007bff" : "#ccc",
-    boxShadow: state.isFocused ? "0 0 0 2px rgba(0,123,255,0.25)" : "none",
-    minHeight: 36,
-  }),
-  option: (provided, state) => ({
-    ...provided,
-    backgroundColor: state.isSelected
-      ? "#007bff"
-      : state.isFocused
-      ? "#e9f3ff"
-      : "white",
-    color: state.isSelected ? "white" : "black",
-  }),
-  dropdownIndicator: (provided) => ({
-    ...provided,
-    padding: "1px",
-  }),
-};
+    control: (provided, state) => ({
+      ...provided,
+      borderRadius: 8,
+      borderColor: state.isFocused ? "#007bff" : "#ccc",
+      boxShadow: state.isFocused ? "0 0 0 2px rgba(0,123,255,0.25)" : "none",
+      minHeight: 36,
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected
+        ? "#007bff"
+        : state.isFocused
+        ? "#e9f3ff"
+        : "white",
+      color: state.isSelected ? "white" : "black",
+    }),
+    dropdownIndicator: (provided) => ({
+      ...provided,
+      padding: "1px",
+    }),
+  };
 
   return (
     <div className='list-order-container'>
@@ -204,6 +205,14 @@ export default function ListOrder() {
             onChange={(e) => setSearch(e.target.value)}
             className='list-order-input'
           />
+        <Select 
+          options={[
+            { value: "date", label: "日付ごと" },   // por data
+            { value: "order", label: "注文順" },   // por ordem
+          ]}
+          value={{ value: viewMode, label: viewMode === "date" ? "日付ごと" : "注文順" }}
+          onChange={(opt) => setViewMode(opt?.value as "date" | "order")}
+        />
         <div className='btn-actions'>
           <button onClick={() => setShowScanner(true)} className='list-btn'>
             <img src="/icons/qrCodeImg.avif" alt="qrcode image" />
@@ -212,6 +221,8 @@ export default function ListOrder() {
             <img src="/icons/table.avif" alt="graphic image" />
           </button>
         </div>
+
+
       </div>
       
       {showScanner && (
@@ -286,7 +297,7 @@ export default function ListOrder() {
                 <tbody>
                   {ordersForDate.map((order) => (
                     <tr key={order.id_order}>
-                      <td>{order.id_order}</td>
+                      <td>{String(order.id_order).padStart(4, "0")}</td>
                       <td>
                         <Select<StatusOption, false>
                           options={statusOptions}
@@ -300,8 +311,6 @@ export default function ListOrder() {
                       </td>
                       <td>
                         {order.first_name} {order.last_name}
-                        <br />
-                        <small>ID: {order.id_client}</small>
                       </td>
                       <td>
                         <ul>

@@ -27,15 +27,15 @@ export type Order = {
   date_order: string;
   pickupHour: string;
   message: string;
-  status: 'Pendente' | 'Entregue';
-  payment: 'Pago' | 'Pendente';
+  status: string;
   cakes: {
     id_cake: number;
     amount: number;
+    price: number;
+    size: string;
+    message_cake: string;
   }[];
 };
-
-
 
 
 export type CakeOrder = {

@@ -150,18 +150,14 @@ export default function OrderCake() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    const telInput = (document.getElementById("tel") as HTMLInputElement).value;
-    const tel = telInput.replace(/\D/g, '');
-    const id_client = tel.slice(-4);
     const date_order = new Date();
 
     const data = {
-      // id_client: Math.random().toString(36).substring(2, 8),
-      id_client,
+      id_client: Math.random().toString(36).substring(2, 8),
       first_name: (document.getElementById("first-name") as HTMLInputElement).value,
       last_name: (document.getElementById("last-name") as HTMLInputElement).value,
       email: (document.getElementById("email") as HTMLInputElement).value,
-      tel,
+      tel: (document.getElementById("tel") as HTMLInputElement).value,
       // date: (document.getElementById("date") as HTMLSelectElement).value,
       date: selectedDate?.toISOString().split('T')[0] || "",
       date_order,
