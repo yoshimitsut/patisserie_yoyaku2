@@ -5,7 +5,7 @@ import DatePicker, { CalendarContainer } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ja } from 'date-fns/locale';
 // import { data } from 'react-router-dom';
-import { addDays, isAfter, isSameDay, getDay } from 'date-fns';
+import { addDays, isAfter, isSameDay, getDay, format } from 'date-fns';
 import type { StylesConfig, GroupBase } from 'react-select';
 
 import type {CakeOrder, OptionType, MyContainerProps } from "../types/types.ts"
@@ -150,7 +150,8 @@ export default function OrderCake() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    const date_order = new Date();
+    const date_order = new Date();  
+    const formattedDate = format(date_order, "yyy/MM/dd");
 
     const data = {
       id_client: Math.random().toString(36).substring(2, 8),
@@ -160,7 +161,7 @@ export default function OrderCake() {
       tel: (document.getElementById("tel") as HTMLInputElement).value,
       // date: (document.getElementById("date") as HTMLSelectElement).value,
       date: selectedDate?.toISOString().split('T')[0] || "",
-      date_order,
+      formattedDate,
       pickupHour,
       message: (document.getElementById("message") as HTMLTextAreaElement).value,
       cakes: cakes.map(c => {
