@@ -78,13 +78,22 @@ export default function ListOrder() {
   }, [showScanner]);
 
   const filteredOrders = useMemo(() => {
-    return orders.filter((o) =>
-      o.first_name.toLowerCase().includes(search.toLowerCase()) ||
-      o.last_name.toLowerCase().includes(search.toLowerCase()) ||
-      o.id_client.includes(search) || 
-      o.tel.includes(search)
-    );
-  }, [orders, search]);
+    const normalizedSeach = search.replace(/\D/g, "");
+
+    return orders.filter((o) => {
+      const idStr = String(o.id_order).padStart(4, "0"); 
+      const normalizedTel = o.tel.replace(/\D/g, "");
+      
+      return (
+        idStr.includes(search) ||
+        o.id_order.toString().includes(search) || 
+        o.first_name.toLowerCase().includes(search.toLowerCase()) ||
+        o.last_name.toLowerCase().includes(search.toLowerCase()) ||
+        normalizedTel.includes(normalizedSeach)
+      );
+  });
+}, [orders, search]);
+
 
   const groupedOrders = useMemo(() => {
     return filteredOrders.reduce((acc: Record<string, Order[]>, order) => {
@@ -100,6 +109,14 @@ export default function ListOrder() {
       ([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime()
     );
   }, [groupedOrders]);
+
+  const displayOrders: [string, Order[]][] = useMemo(() => {
+    if (viewMode === 'date') {
+      return sortedGroupedOrders;
+    } else {
+      return [["注文順", [...filteredOrders].sort((a, b) => a.id_order - b.id_order)]];
+    }
+  }, [viewMode, sortedGroupedOrders, filteredOrders]);
 
   type StatusOption = {
     value: "1" | "2" | "3" | "4";
@@ -273,25 +290,24 @@ export default function ListOrder() {
         <p>注文が見つかりません。</p>
       ) : (
         <>
-          { viewMode === "date" } ? (
-
+          
           
           {/* Tabelas (desktop) */}
-          {sortedGroupedOrders.map(([date, ordersForDate]) => {
-            const totalProdutos = ordersForDate.reduce(
+          {displayOrders.map(([groupTitles, ordersForGroup]: [string, Order[]]) => {
+            const totalProdutos = ordersForGroup.reduce(
               (sum, order) => sum + order.cakes.reduce((s, c) => s + c.amount, 0),
               0
             );
 
-            const totalValor = ordersForDate.reduce(
+            const totalValor = ordersForGroup.reduce(
               (sum, order) =>
                 sum +
                 order.cakes.reduce((s, c) => s + extrairPreco(c.size) * c.amount, 0),
               0
             );
             return (
-            <div key={date} className="table-wrapper">
-              <h3 style={{ background: "#f0f0f0", padding: "8px" }}>{date}</h3>
+            <div key={groupTitles} className="table-wrapper">
+              <h3 style={{ background: "#f0f0f0", padding: "8px" }}>{groupTitles}</h3>
               <table className="list-order-table">
                 <thead>
                   <tr>
@@ -305,7 +321,7 @@ export default function ListOrder() {
                   </tr>
                 </thead>
                 <tbody>
-                  {ordersForDate.map((order) => (
+                  {ordersForGroup.map((order) => (
                     <tr key={order.id_order}>
                       <td>{String(order.id_order).padStart(4, "0")}</td>
                       <td>
@@ -347,57 +363,7 @@ export default function ListOrder() {
             </div>
             );  
         })}
-      ) : ) : (
-  <div className="table-wrapper">
-    <h3>注文順</h3>
-    <table className="list-order-table">
-      <thead>
-        <tr>
-          <th>受付番号</th>
-          <th className="situation-cell">お会計</th>
-          <th>お名前</th>
-          <th>ご注文のケーキ</th>
-          <th>受け取り希望時間</th>
-          <th>メッセージ</th>
-          <th>電話番号</th>
-        </tr>
-      </thead>
-      <tbody>
-        {filteredOrders
-          .sort((a, b) => a.id_order - b.id_order)
-          .map((order) => (
-          <tr key={order.id_order}>
-            <td>{String(order.id_order).padStart(4, "0")}</td>
-            <td>
-              <Select<StatusOption, false>
-                options={statusOptions}
-                value={statusOptions.find((opt) => opt.value === order.status)}
-                onChange={(selected: SingleValue<StatusOption>) => {
-                  if (selected) handleStatusChange(order.id_order, selected.value);
-                }}
-                styles={customStyles}
-                isSearchable={false}
-              />
-            </td>
-            <td>{order.first_name} {order.last_name}</td>
-            <td>
-              <ul>
-                {order.cakes.map((cake, i) => (
-                  <li key={`${order.id_order}-${cake.id_cake}-${i}`}>
-                    {cake.name} - 個数: {cake.amount} <br /> {cake.size}
-                  </li>
-                ))}
-              </ul>
-            </td>
-            <td>{order.pickupHour}</td>
-            <td>{order.message || " "}</td>
-            <td>{order.tel}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-)
+      
 
           {/* Cards (mobile) */}
           <div className="mobile-orders">
