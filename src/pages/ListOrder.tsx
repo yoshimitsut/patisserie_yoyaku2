@@ -3,32 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import Select from "react-select";
 
+import ExcelExportButton from '../components/ExcelExportButton';
+
 import type { StylesConfig, SingleValue } from 'react-select';
+import type { Order } from '../types/types';
 
 import './ListOrder.css';
 
-type Cake = {
-  id_cake: number;
-  name: string;
-  quantity: number;
-  size: string;
-  image: string;
-  amount: number;
-}
 
-type Order = {
-  id_order: number;
-  id_client: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  tel: string;
-  date: string;
-  pickupHour: string;
-  message: string;
-  cakes: Cake[];
-  status?:string; 
-};
 
 export default function ListOrder() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -236,13 +218,14 @@ export default function ListOrder() {
           isSearchable={false}
           styles={{ container: (base) => ({ ...base, wiidth: 200 }) }}
         />
-
+        
         <div className='btn-actions'>
+          <ExcelExportButton data={orders} filename='注文ケーキ.xlsx' sheetName='注文' />
           <button onClick={() => setShowScanner(true)} className='list-btn'>
-            <img src="/icons/qrCodeImg.avif" alt="qrcode image" />
+            <img src="/icons/qrCodeImg.avif" alt="qrcode icon" />
           </button>
           <button onClick={() => navigate("/graphic")} className='list-btn'>
-            <img src="/icons/table.avif" alt="graphic image" />
+            <img src="/icons/table.avif" alt="graphic icon" />
           </button>
         </div>
 
@@ -275,8 +258,8 @@ export default function ListOrder() {
           <strong>受取日: </strong> {scannedOrder.date} - {scannedOrder.pickupHour}<br />
           <strong>ご注文のケーキ: </strong> 
           <ul className='cake-list'>
-            {scannedOrder.cakes.map((cake) => (
-              <li key={cake.id_cake}>
+            {scannedOrder.cakes.map((cake, index) => (
+              <li key={`${cake.id_cake}-${index}`}>
                 {cake.name} - 個数: {cake.amount} - ¥{cake.size}
               </li>
             ))}
@@ -385,8 +368,8 @@ export default function ListOrder() {
                 <details>
                   <summary>ご注文内容</summary>
                   <ul>
-                    {order.cakes.map((cake) => (
-                      <li key={cake.id_cake}>
+                    {order.cakes.map((cake, index) => (
+                      <li key={`${cake.id_cake}-${index}`}>
                         {cake.name} - 個数: {cake.amount} - {cake.size}
                       </li>
                     ))}

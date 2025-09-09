@@ -8,7 +8,7 @@
         { "size": "５号", "price": 4600 },
         { "size": "６号", "price": 5600 }
       ],
-      "quantity": 10,
+      "amount": 10,
       "image": "../image/ノエルフレーズ.jpg"
     },
     
@@ -20,7 +20,7 @@
           { "size": "５号", "price": 4800 },
           { "size": "６号", "price": 5800 }
       ],
-      "quantity": 5,
+      "amount": 5,
       "image": "../image/ノエルショコラ.jpg"
     },
     {
@@ -29,7 +29,7 @@
       "sizes": [
         { "size": "１５cm", "price": 4800 }
       ],
-      "quantity": 5,
+      "amount": 5,
       "image": "../image/パリブレストピスターシュ.jpg"
     },
     {
@@ -38,7 +38,7 @@
       "sizes": [
         { "size": " ", "price": 5600 }
       ],
-      "quantity": 0,
+      "amount": 0,
       "image": "../image/フェデルタ.jpg"
     },
     {
@@ -48,7 +48,7 @@
         { "size": "１６cm x １１cm", "price": 4600 },
         { "size": "１４cm x １４cm", "price": 5000 }
       ],
-      "quantity": 5,
+      "amount": 5,
       "image": "../image/ノエルレア.jpg"
     },
     {
@@ -57,7 +57,7 @@
       "sizes": [
         { "size": "１７cm", "price": 3200 }
       ],
-      "quantity": 5,
+      "amount": 5,
       "image": "../image/クリスマスロール.jpg"
     }
   ]

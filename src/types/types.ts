@@ -24,20 +24,22 @@ export type Order = {
   email: string;
   tel: string;
   date: string;
-  date_order: string;
+  date_order?: string;
   pickupHour: string;
   message: string;
   status: string;
-  cakes: {
-    id_cake: number;
-    amount: number;
-    price: number;
-    size: string;
-    message_cake: string;
-  }[];
+  cakes: OrderCake[];
 };
 
-
+export type OrderCake = {
+  id_cake: number;
+  name: string;
+  amount: number;
+  price: number;
+  size: string;
+  message_cake?: string;
+};
+//verificar (duplicado)
 export type CakeOrder = {
   cake: string;
   quantity: string;

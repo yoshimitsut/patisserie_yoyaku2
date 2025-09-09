@@ -8,7 +8,7 @@ import { ja } from 'date-fns/locale';
 import { addDays, isAfter, isSameDay, getDay, format } from 'date-fns';
 import type { StylesConfig, GroupBase } from 'react-select';
 
-import type {CakeOrder, OptionType, MyContainerProps } from "../types/types.ts"
+import type {OrderCake, OptionType, MyContainerProps } from "../types/types.ts"
 import "./OrderCake.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -42,8 +42,8 @@ export default function OrderCake() {
   }));
 
   // estado dos bolos escolhidos
-  const [cakes, setCakes] = useState<CakeOrder[]>([
-    {cake: String(cakesData.cakes[0].id_cake), quantity: "1", size: "", price: 1},
+  const [cakes, setCakes] = useState<OrderCake[]>([
+    {id_cake: cakesData.cakes[0].id_cake, name: "", amount: 1, size: "", price: 1},
   ]);
   
   // opções de quantidade
@@ -54,7 +54,7 @@ export default function OrderCake() {
 
   // adicionar bolos
   const addCake = () => {
-    setCakes(prev => [...prev, {cake: "0", quantity: "1", size: "", price: 1}]);
+    setCakes(prev => [...prev, {id_cake: 0, name: "", amount: 1, size: "", price: 1}]);
   };
   
   // remover bolos
@@ -63,9 +63,15 @@ export default function OrderCake() {
   };
 
   // atualizar campo de um bolo
-  const updateCake = (index: number, field: keyof CakeOrder, value: string) => {
-    setCakes(prev => 
-      prev.map((item, i) => (i === index ? {...item, [field]: value } : item))
+  const updateCake = <K extends keyof OrderCake>(
+    index: number,
+    field: K,
+    value: OrderCake[K]
+  ) => {
+    setCakes(prev =>
+      prev.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      )
     );
   };
 
@@ -151,7 +157,7 @@ export default function OrderCake() {
     setIsSubmitting(true);
     
     const date_order = new Date();  
-    const formattedDate = format(date_order, "yyy/MM/dd");
+    const formattedDate = format(date_order, "yyyy-MM-dd");
 
     const data = {
       id_client: Math.random().toString(36).substring(2, 8),
@@ -161,17 +167,18 @@ export default function OrderCake() {
       tel: (document.getElementById("tel") as HTMLInputElement).value,
       // date: (document.getElementById("date") as HTMLSelectElement).value,
       date: selectedDate?.toISOString().split('T')[0] || "",
-      formattedDate,
+      date_order: formattedDate,
       pickupHour,
       message: (document.getElementById("message") as HTMLTextAreaElement).value,
       cakes: cakes.map(c => {
-        const cakeData = cakesData.cakes.find(cake => Number(cake.id_cake) === Number(c.cake));
+        const cakeData = cakesData.cakes.find(cake => Number(cake.id_cake) === Number(c.id_cake));
         return {
           id_cake: cakeData?.id_cake,
           name: cakeData?.name,
-          size: c.size,
+          amount: c.amount,
           price: c.price,
-          amount: parseInt(c.quantity)
+          size: c.size,
+          message_cake: c.message_cake || ""
         };
       })
     };
@@ -189,7 +196,7 @@ export default function OrderCake() {
         alert(`送信が完了しました！受付番号: ${result.id}`);
         
         // Limpar campos controlados
-        setCakes([{ cake: String(cakesData.cakes[0].id_cake), quantity: "1", size: "", price: 1 }]);
+        setCakes([{ id_cake: cakesData.cakes[0].id_cake, name:"", amount: 1, size: "", price: 1, message_cake: "" }]);
         setSelectedDate(null);
         setPickupHour("時間を選択");
 
@@ -228,7 +235,7 @@ export default function OrderCake() {
             {cakes.map((item, index) => {
               // const selectedCake = cakeOptions.find(cake => cake.id_cake === Number(item.cake));
               const selectedCakeData = cakesData.cakes.find(
-                c => String(c.id_cake) === item.cake
+                c => c.id_cake === item.id_cake
               );
               
               const sizeOptions: OptionType[] = 
@@ -239,7 +246,7 @@ export default function OrderCake() {
                 : [];
               
               return(
-              <div className="box-cake" key={`${item.cake}-${index}`} >
+              <div className="box-cake" key={`${item.id_cake}-${index}`} >
                 {index > 0 && (
                 <div className='btn-remove-div'>
                 <button 
@@ -262,9 +269,9 @@ export default function OrderCake() {
                 <div className='input-group'>
                   <Select<OptionType>
                     options={cakeOptions}
-                    value={cakeOptions.find(c => c.value === item.cake) || null}
+                    value={cakeOptions.find(c => Number(c.value) === item.id_cake) || null}
                     onChange={selected =>  
-                      updateCake(index, "cake", selected?.value || "0")
+                      updateCake(index, "id_cake", selected ? Number(selected.value) : 0)
                     }
                     classNamePrefix="react-select"
                     placeholder="ケーキを選択"
@@ -307,9 +314,9 @@ export default function OrderCake() {
                 <div className='input-group'>
                   <Select<OptionType>
                   options={quantityOptions}
-                  value={quantityOptions.find(q => q.value === item.quantity || null)}
+                  value={quantityOptions.find(q => q.value === String(item.amount) || null)}
                   onChange={selected =>
-                    updateCake(index, 'quantity', selected?.value || '1')
+                    updateCake(index, 'amount', selected? Number(selected.value) : 1)
                   }
                   classNamePrefix='react-select'
                   placeholder='数量'
@@ -320,8 +327,11 @@ export default function OrderCake() {
                 </div>
 
                 <div className='input-group'>
-                  <label htmlFor="message-cake">その他</label>
-                  <textarea name="message-cake" id="message-cake" placeholder="メッセージプレートの内容など"></textarea>
+                  <label htmlFor="message_cake">その他</label>
+                  <textarea name="message_cake" id="message_cake" placeholder="メッセージプレートの内容など"
+                    value={item.message_cake || ""}
+                    onChange={(e) => updateCake(index, "message_cake", e.target.value)}
+                  ></textarea>
                 </div>
 
                 <div className='btn-div'>
