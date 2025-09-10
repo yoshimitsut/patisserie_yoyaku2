@@ -8,6 +8,12 @@ type ExcelExportButtonProps = {
   filename: string;
   sheetName: string;
 }
+const statusOptions: Record<number, string> = {
+  1: "未",
+  2: "ネット決済済",
+  3: "店頭支払い済",
+  4: "お渡し済",
+};
 
 const formatDataForExcel = (orders: Order[]) => {
   return orders.flatMap((order) => {
@@ -21,8 +27,8 @@ const formatDataForExcel = (orders: Order[]) => {
       '個数': cake.amount,
       'サイズ/価格': cake.size,
       'メッセージ': order.message || 'なし',
-      'ステータス': order.status,
-      '予約注文': order.date_order,
+      'ステータス': statusOptions[Number(order.status)] || String(order.status),
+      '注文日': order.date_order,
     }))
   })
 }
@@ -38,7 +44,7 @@ const handleExport = (data: Order[], filename: string, sheetName: string) => {
 const ExcelExportButton: React.FC<ExcelExportButtonProps> = ({ data, filename, sheetName}) => {
   return (
     <button onClick={() => handleExport(data, filename, sheetName)} className='list-btn'>
-      <img src='/icon/excel.avif' alt='excel icon' />
+      <img src='/icons/file-download.svg' alt='excel icon' />
     </button>
   )
 }

@@ -73,8 +73,8 @@ export default function ListOrder() {
         o.last_name.toLowerCase().includes(search.toLowerCase()) ||
         normalizedTel.includes(normalizedSeach)
       );
-  });
-}, [orders, search]);
+    });
+  }, [orders, search]);
 
 
   const groupedOrders = useMemo(() => {
@@ -112,16 +112,22 @@ export default function ListOrder() {
     { value: "4", label: "お渡し済" },
   ];
 
-
-  function extrairPreco(size: string[] | string): number {
-    const text = Array.isArray(size) ? size[0] : size;
-    const normalized = text.replace(/[０-９]/g, (c) =>
-      String.fromCharCode(c.charCodeAt(0) - 0xFEE0)
-    );
-    const match = normalized.match(/￥([\d,]+)/);
-    if (!match) return 0;
-    return Number(match[1].replace(/,/g, ""));
+  function getRowColor(status: string) {
+    if (status === "1") return "bg-red"
+    if (status === "2") return "bg-blue"
+    if (status === "3") return "bg-green"
+    if (status === "4") return "bg-orenge"
   }
+
+  // function extrairPreco(size: string[] | string): number {
+  //   const text = Array.isArray(size) ? size[0] : size;
+  //   const normalized = text.replace(/[０-９]/g, (c) =>
+  //     String.fromCharCode(c.charCodeAt(0) - 0xFEE0)
+  //   );
+  //   const match = normalized.match(/￥([\d,]+)/);
+  //   if (!match) return 0;
+  //   return Number(match[1].replace(/,/g, ""));
+  // }
 
 
   function handleStatusChange(id_order: number, newStatus: "1" | "2" | "3" | "4") {
@@ -285,7 +291,7 @@ export default function ListOrder() {
             const totalValor = ordersForGroup.reduce(
               (sum, order) =>
                 sum +
-                order.cakes.reduce((s, c) => s + extrairPreco(c.size) * c.amount, 0),
+                order.cakes.reduce((s, c) => s + (c.price) * c.amount, 0),
               0
             );
             return (
@@ -305,7 +311,7 @@ export default function ListOrder() {
                 </thead>
                 <tbody>
                   {ordersForGroup.map((order) => (
-                    <tr key={order.id_order}>
+                    <tr key={order.id_order} className={getRowColor(order.status)}>
                       <td>{String(order.id_order).padStart(4, "0")}</td>
                       <td>
                         <Select<StatusOption, false>
@@ -325,7 +331,9 @@ export default function ListOrder() {
                         <ul>
                           {order.cakes.map((cake, index) => (
                             <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
-                              {cake.name} - 個数: {cake.amount} <br /> {cake.size}
+                              {cake.name} <br /> 
+                              個数: {cake.amount} - {cake.size} - ¥{cake.price}<br />
+                              -{cake.message_cake}
                             </li>
                           ))}
                         </ul>
