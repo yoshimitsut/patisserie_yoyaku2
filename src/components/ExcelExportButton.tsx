@@ -20,13 +20,14 @@ const formatDataForExcel = (orders: Order[]) => {
     return order.cakes.map((cake: OrderCake) => ({
       '受付番号': String(order.id_order).padStart(4, "0"),
       'お名前': `${order.first_name} ${order.last_name}`,
-      '電話番号': order.tel,
+      'ケーキ名': cake.name,
+      'サイズ/価格': cake.size,
+      '個数': cake.amount,
       '受取日': order.date,
       '受け取り時間': order.pickupHour,
-      'ケーキ名': cake.name,
-      '個数': cake.amount,
-      'サイズ/価格': cake.size,
+      'メッセージ ケーキ': cake.message_cake || 'なし',
       'メッセージ': order.message || 'なし',
+      '電話番号': order.tel,
       'ステータス': statusOptions[Number(order.status)] || String(order.status),
       '注文日': order.date_order,
     }))

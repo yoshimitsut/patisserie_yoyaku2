@@ -327,8 +327,8 @@ export default function OrderCake() {
                 </div>
 
                 <div className='input-group'>
-                  <label htmlFor="message_cake">その他</label>
-                  <textarea name="message_cake" id="message_cake" placeholder="メッセージプレートの内容など"
+                  <label htmlFor="message_cake">メッセージプレート</label>
+                  <textarea name="message_cake" id="message_cake" placeholder="ご要望がある場合のみご記入ください。"
                     value={item.message_cake || ""}
                     onChange={(e) => updateCake(index, "message_cake", e.target.value)}
                   ></textarea>
@@ -430,7 +430,7 @@ export default function OrderCake() {
 
             <div className='input-group'>
               <label htmlFor="message">その他</label>
-              <textarea name="message" id="message" placeholder="メッセージプレートの内容など"></textarea>
+              <textarea name="message" id="message" placeholder=""></textarea>
             </div>
           </div>
 
