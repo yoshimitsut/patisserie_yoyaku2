@@ -136,7 +136,7 @@ export default function ListOrder() {
   }, [viewMode, sortedGroupedOrders, orders]);
 
   type StatusOption = {
-    value: "1" | "2" | "3" | "4";
+    value: "1" | "2" | "3" | "4" | "5";
     label: string;
   };
 
@@ -145,10 +145,11 @@ export default function ListOrder() {
     { value: "2", label: "ネット決済済" },
     { value: "3", label: "店頭支払い済" },
     { value: "4", label: "お渡し済" },
+    { value: "5", label: "キャンセル" },
   ];
 
 
-  function handleStatusChange(id_order: number, newStatus: "1" | "2" | "3" | "4") {
+  function handleStatusChange(id_order: number, newStatus: "1" | "2" | "3" | "4" | "5") {
     const order = orders.find((o) => o.id_order === id_order);
     if(!order) return;
 
@@ -157,6 +158,7 @@ export default function ListOrder() {
       "2": "ネット決済済",
       "3": "店頭支払い済",
       "4": "お渡し済",
+      "5": "キャンセル",
     };
 
     const currentStatus = statusMap[order.status ?? "1"];
@@ -199,29 +201,33 @@ export default function ListOrder() {
       const selected = state.selectProps.value as StatusOption | null;
 
       let bgColor = "#000";
-      let fontColor = "#FFF";
+      let fontColor = "#fff";
 
       if (selected) {
         switch (selected.value) {
           case "1":
-            bgColor = "#C40000"; // amarelo
+            bgColor = "#C40000";
             fontColor = "#FFF";
             break;
           case "2":
-            bgColor = "#000DBD"; // verde
+            bgColor = "#000DBD"; 
             fontColor = "#FFF";
             break;
           case "3":
-            bgColor = "#287300"; // vermelho
+            bgColor = "#287300"; 
             fontColor = "#FFF";
             break;
           case "4":
-            bgColor = "#6B6B6B"; // vermelho
+            bgColor = "#6B6B6B"; 
             fontColor = "#FFF";
             break;
-          default:
+          case "5":
             bgColor = "#000";
-            fontColor = "#FFF";
+            fontColor = "#fff";
+            break;
+          default:
+            bgColor = "#fff";
+            fontColor = "#000";
         }
       }
 
@@ -243,7 +249,7 @@ export default function ListOrder() {
       };
     },
     option: (provided, state) => {
-      let bgColor = "white";
+      let bgColor = "#000";
       let fontColor = "#FFF";
 
       switch ((state.data as StatusOption).value) {
@@ -261,6 +267,10 @@ export default function ListOrder() {
           break;
         case "4":
           bgColor = state.isFocused ? "#6B6B6B" : "white";
+          fontColor = state.isFocused ? "white" : "black";
+          break;
+        case "5":
+          bgColor = state.isFocused ? "#000" : "white";
           fontColor = state.isFocused ? "white" : "black";
           break;
       }
@@ -315,7 +325,7 @@ export default function ListOrder() {
               onChange={(selected) =>
                 handleStatusChange(
                   scannedOrder.id_order,
-                  selected?.value as "1" | "2" | "3" | "4"
+                  selected?.value as "1" | "2" | "3" | "4" | "5"
                 )
               }
               styles={customStyles}
@@ -412,33 +422,33 @@ export default function ListOrder() {
                       </td>
                       <td>{order.date} {order.pickupHour}</td>
                       <td>
-        <ul>
-          {order.cakes.map((cake, index) => (
-            <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
-              {cake.name} 
-              {cake.size} - ¥{cake.price}<br />
-            </li>
-          ))}
-        </ul>
-      </td>
-      <td style={{ textAlign: "center" }}>
-        <ul>
-          {order.cakes.map((cake, index) => (
-            <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
-              {cake.amount}
-            </li>
-          ))}
-        </ul>
-      </td>
-      <td style={{ textAlign: "center" }}>
-        <ul>
-          {order.cakes.map((cake, index) => (
-            <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
-              {cake.message_cake}
-            </li>
-          ))}
-        </ul>
-      </td>
+                        <ul>
+                          {order.cakes.map((cake, index) => (
+                            <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
+                              {cake.name} 
+                              {cake.size} - ¥{cake.price}<br />
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
+                      <td style={{ textAlign: "left" }}>
+                        <ul>
+                          {order.cakes.map((cake, index) => (
+                            <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
+                              {cake.amount}
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
+                      <td style={{ textAlign: "left" }}>
+                        <ul>
+                          {order.cakes.map((cake, index) => (
+                            <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
+                              {cake.message_cake}
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
                       {/* <td>
                         <table className='table-cake' style={{width: "100%"}}>
                           <thead>
@@ -495,7 +505,7 @@ export default function ListOrder() {
 
           {/* Cards (mobile) */}
           <div className="mobile-orders">
-            {orders.map((order) => (
+            {/* {orders.map((order) => (
               <div className="order-card" key={order.id_order}>
                 <div className="order-header">
                   <span>受付番号: {order.id_order}</span>
@@ -505,7 +515,7 @@ export default function ListOrder() {
                     options={statusOptions}
                     value={statusOptions.find((opt) => opt.value === order.status)}
                     onChange={(selected) =>
-                      handleStatusChange(order.id_order, selected?.value as "1" | "2" | "3" | "4")
+                      handleStatusChange(order.id_order, selected?.value as "1" | "2" | "3" | "4" | "5")
                     }
                   />
                 <p>お名前: {order.first_name} {order.last_name}</p>
@@ -524,7 +534,7 @@ export default function ListOrder() {
                 </details>
               </div>
             
-            ))}
+            ))} */}
           </div>
         </>
       )}
