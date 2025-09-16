@@ -4,8 +4,11 @@ import Select from 'react-select';
 import DatePicker, { CalendarContainer } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ja } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 // import { data } from 'react-router-dom';
-import { addDays, isAfter, isSameDay, getDay, format } from 'date-fns';
+import { addDays, isAfter, isSameDay, 
+  // getDay, 
+  format } from 'date-fns';
 import type { StylesConfig, GroupBase } from 'react-select';
 
 import type {OrderCake, OptionType, MyContainerProps, 
@@ -17,7 +20,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 
 export default function OrderCake() {
-  
+  const navigate = useNavigate();
+
   const MyContainer = ({ className, children }: MyContainerProps) => {
     return (
       <div>
@@ -86,6 +90,10 @@ export default function OrderCake() {
     );
   };
 
+  const handleDateChange = (date: Date | null) => {
+    setSelectedDate(date);
+  };
+
   const [pickupHour, setPickupHour] = useState("時間を選択");
 
   const hoursOptions = [
@@ -104,6 +112,13 @@ export default function OrderCake() {
     { day: 21, month: 7},
     { day: 20, month: 8},// mês 7 = setembro
     { day: 21, month: 8},
+  ];
+
+  const allowedDates = [
+    new Date(today.getFullYear(), 11, 22),
+    new Date(today.getFullYear(), 11, 23),
+    new Date(today.getFullYear(), 11, 24),
+    new Date(today.getFullYear(), 11, 25),
   ];
 
   const generateSpecificDatesWithMonth = () => {
@@ -204,7 +219,8 @@ export default function OrderCake() {
       const result = await res.json();
       if (result.success) {
         // setOrderId(result.id); // armazena o id do pedido
-        alert(`送信が完了しました！受付番号: ${String(result.id).padStart(4, "0")}`);
+        // alert(`送信が完了しました！受付番号: ${String(result.id).padStart(4, "0")}`);
+        navigate("check");
         
         // Limpar campos controlados
         setCakes([{ id_cake: cakesData.cakes[0].id_cake, name:"", amount: 1, size: "", price: 1, message_cake: "" }]);
@@ -398,7 +414,7 @@ export default function OrderCake() {
             
             <div className='input-group'>
               <label htmlFor="datepicker" className='datepicker'>*受け取り希望日</label>
-              <DatePicker
+              {/* <DatePicker
                 selected={selectedDate}
                 onChange={(date) => setSelectedDate(date)}
                 minDate={today}
@@ -424,6 +440,36 @@ export default function OrderCake() {
                   const isAvailable = isDateAllowed(date);
                   const isFuture = isAfter(date, today);
                   const isHoliday = excludedDates.some(d => isSameDay(d, date));
+
+                  return (
+                    <div className="day-cell">
+                      <span>{day}</span>
+                      {isAvailable && isFuture && <div className="selectable"></div>}
+                      {isHoliday && <span className="yassumi">x</span>}
+                    </div>
+                  );
+                }}
+              /> */}
+              <DatePicker
+                selected={selectedDate}
+                onChange={handleDateChange}
+                includeDates={allowedDates}
+                filterDate={isDateAllowed}
+                minDate={allowedDates[0]}
+                maxDate={allowedDates[allowedDates.length - 1]}
+                openToDate={allowedDates[0]}
+                dateFormat="yyyy年MM月dd日"
+                placeholderText="日付を選択"
+                className="react-datepicker"
+                locale={ja}
+                calendarClassName="datepicker-calendar"
+                calendarContainer={MyContainer}
+                onFocus={handleFocus}
+                required
+                renderDayContents={(day, date) => {
+                  const isAvailable = allowedDates.some(d => isSameDay(d, date));
+                  const isFuture = isAfter(date, today);
+                  const isHoliday = !isAvailable;
 
                   return (
                     <div className="day-cell">
