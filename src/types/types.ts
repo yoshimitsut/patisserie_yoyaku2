@@ -10,10 +10,8 @@ export type Cake = {
   id_cake: number;
   name: string;
   sizes: SizeOption[];
-  quantity: number;
+  stock: number;
   image: string;
-  price: number;
-  message_cake: string;
 };
 
 export type Order = {

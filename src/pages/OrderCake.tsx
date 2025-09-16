@@ -8,7 +8,9 @@ import { ja } from 'date-fns/locale';
 import { addDays, isAfter, isSameDay, getDay, format } from 'date-fns';
 import type { StylesConfig, GroupBase } from 'react-select';
 
-import type {OrderCake, OptionType, MyContainerProps } from "../types/types.ts"
+import type {OrderCake, OptionType, MyContainerProps, 
+  // Cake
+ } from "../types/types.ts"
 import "./OrderCake.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -24,7 +26,7 @@ export default function OrderCake() {
           <div style={{ padding: "20px" }}>
               <p>３日前よりご予約可能（２週間後まで）</p>
             </div>
-          <div className='notice'>
+          <div className='notice'>                                                                                            
             <div className='selectable'></div>
               <span>予約可能日  /  <span className='yassumi'>x</span> 予約不可</span>
           </div>
@@ -35,10 +37,19 @@ export default function OrderCake() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // const cakeData: Cake[] = cakesData.cakes.map(c => ({
+  //   id_cake: c.id_cake,
+  //   name: c.name,
+  //   sizes: c.sizes,
+  //   stock: c.stock,
+  //   image: c.image,
+  // }))
+
   // opções de bolo
   const cakeOptions: OptionType[] = cakesData.cakes.map(c => ({
     value: String(c.id_cake),
-    label: c.name
+    label: c.name,
+    image: c.image
   }));
 
   // estado dos bolos escolhidos
@@ -265,6 +276,17 @@ export default function OrderCake() {
                     alt={selectedCakeData.name}
                   />
                 )}
+                {/* {cakeData.map(cake => (
+                  <div key={cake.id_cake}>
+                    <h3>{cake.name}</h3>
+                    <img src="{cake.image}" alt="{cake.name}" />
+                    <ul>
+                      {cake.sizes.map((s, i) => (
+                        <li key={i}>{s.size}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))} */}
 
                 <div className='input-group'>
                   <Select<OptionType>

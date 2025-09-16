@@ -89,6 +89,23 @@ body {
       display: flex;
       flex-direction: column;
       align-items: center;
+      
+        
+      .cake-img {
+        width: 200px;
+      }
+      
+      .box-selection {
+        /* width: 100vh; */
+        border: 1px solid;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        
+        .option-cake {
+          padding: 10px;
+          
+        }
+      }
     }
     
     .btn-remove-div {

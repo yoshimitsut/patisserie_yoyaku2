@@ -8,7 +8,7 @@
         { "size": "５号", "price": 4600 },
         { "size": "６号", "price": 5600 }
       ],
-      "amount": 10,
+      "stock": 10,
       "image": "../image/ノエルフレーズ.jpg"
     },
     
@@ -20,7 +20,7 @@
           { "size": "５号", "price": 4800 },
           { "size": "６号", "price": 5800 }
       ],
-      "amount": 5,
+      "stock": 5,
       "image": "../image/ノエルショコラ.jpg"
     },
     {
@@ -29,16 +29,16 @@
       "sizes": [
         { "size": "１５cm", "price": 4800 }
       ],
-      "amount": 5,
+      "stock": 5,
       "image": "../image/パリブレストピスターシュ.jpg"
     },
     {
       "id_cake": 4,
       "name": "フェデルタ　arrumar（完売）",
       "sizes": [
-        { "size": " ", "price": 5600 }
+        { "size": "１６cm x １１cm", "price": 4600 }
       ],
-      "amount": 0,
+      "stock": 0,
       "image": "../image/フェデルタ.jpg"
     },
     {
@@ -48,7 +48,7 @@
         { "size": "１６cm x １１cm", "price": 4600 },
         { "size": "１４cm x １４cm", "price": 5000 }
       ],
-      "amount": 5,
+      "stock": 5,
       "image": "../image/ノエルレア.jpg"
     },
     {
@@ -57,7 +57,7 @@
       "sizes": [
         { "size": "１７cm", "price": 3200 }
       ],
-      "amount": 5,
+      "stock": 5,
       "image": "../image/クリスマスロール.jpg"
     }
   ]

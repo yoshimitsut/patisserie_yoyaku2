@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import Select from "react-select";
@@ -19,17 +19,51 @@ export default function ListOrder() {
   const [scannedOrder, setScannedOrder] = useState<Order | null>(null);
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<"date" | "order">("order");
+  
   const navigate = useNavigate();
   
+  const handleSearch = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/list`)
+  setLoading(true);
+  if (handleSearch.current) {
+    clearTimeout(handleSearch.current);
+  }
+
+  handleSearch.current = setTimeout(() => {
+    const searchUrl = search 
+      ? `${import.meta.env.VITE_API_URL}/api/list?search=${encodeURIComponent(search)}` 
+      : `${import.meta.env.VITE_API_URL}/api/list`;
+  
+    fetch(searchUrl)
       .then((res) => res.json())
-      .then((data) => setOrders(data))
-      .catch((error: unknown) => {
+      .then((data) => {
+        // 🔑 garante que orders sempre é array
+        const normalized = Array.isArray(data) ? data : (data.orders || []);
+        setOrders(normalized);
+      })
+      .catch((error) => {
         console.error('Erro ao carregar pedidos:', error);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, 500);
+
+  return () => {
+    if (handleSearch.current) {
+      clearTimeout(handleSearch.current);
+    }
+  };
+}, [search]);
+
+
+  // Agora, você não precisa mais do filteredOrders, use apenas 'orders' diretamente
+  const groupedOrders = useMemo(() => {
+    return orders.reduce((acc, order) => {
+      if (!acc[order.date]) acc[order.date] = [];
+      acc[order.date].push(order);
+      return acc;
+    }, {} as Record<string, Order[]>);
+  }, [orders]);
 
   useEffect(() => {
     if (showScanner) {
@@ -59,46 +93,47 @@ export default function ListOrder() {
     }
   }, [showScanner]);
 
-  const filteredOrders = useMemo(() => {
-    const normalizedSeach = search.replace(/\D/g, "");
+  // const filteredOrders = useMemo(() => {
+  //   const normalizedSeach = search.replace(/\D/g, "");
 
-    return orders.filter((o) => {
-      const idStr = String(o.id_order).padStart(4, "0"); 
-      const normalizedTel = o.tel.replace(/\D/g, "");
+  //   return orders.filter((o) => {
+  //     const idStr = String(o.id_order).padStart(4, "0"); 
+  //     const normalizedTel = o.tel.replace(/\D/g, "");
       
-      return (
-        idStr.includes(search) ||
-        o.id_order.toString().includes(search) || 
-        o.first_name.toLowerCase().includes(search.toLowerCase()) ||
-        o.last_name.toLowerCase().includes(search.toLowerCase()) ||
-        normalizedTel.includes(normalizedSeach)
-      );
-    });
-  }, [orders, search]);
+  //     return (
+  //       idStr.includes(search) ||
+  //       o.id_order.toString().includes(search) || 
+  //       o.first_name.toLowerCase().includes(search.toLowerCase()) ||
+  //       o.last_name.toLowerCase().includes(search.toLowerCase()) ||
+  //       normalizedTel.includes(normalizedSeach)
+  //     );
+  //   });
+  // }, [orders, search]);
 
 
-  const groupedOrders = useMemo(() => {
-    return filteredOrders.reduce((acc: Record<string, Order[]>, order) => {
-      if (!acc[order.date]) acc[order.date] = [];
-      acc[order.date].push(order);
-      return acc;
-    }, {});
-  }, [filteredOrders]);
+  // const groupedOrders = useMemo(() => {
+  //   return filteredOrders.reduce((acc: Record<string, Order[]>, order) => {
+  //     if (!acc[order.date]) acc[order.date] = [];
+  //     acc[order.date].push(order);
+  //     return acc;
+  //   }, {});
+  // }, [filteredOrders]);
 
   // transforma em array e ordena pelas datas
   const sortedGroupedOrders = useMemo(() => {
-    return Object.entries(groupedOrders).sort(
-      ([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime()
-    );
+    return Object.entries(groupedOrders) as [string, Order[]][];
+    // return (Object.entries(groupedOrders) as [string, Order[]][]).sort(
+    //   ([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime()
+    // );
   }, [groupedOrders]);
 
   const displayOrders: [string, Order[]][] = useMemo(() => {
     if (viewMode === 'date') {
       return sortedGroupedOrders;
     } else {
-      return [["注文順", [...filteredOrders].sort((a, b) => a.id_order - b.id_order)]];
+      return [["注文順", [...orders].sort((a, b) => a.id_order - b.id_order)]];
     }
-  }, [viewMode, sortedGroupedOrders, filteredOrders]);
+  }, [viewMode, sortedGroupedOrders, orders]);
 
   type StatusOption = {
     value: "1" | "2" | "3" | "4";
@@ -111,23 +146,6 @@ export default function ListOrder() {
     { value: "3", label: "店頭支払い済" },
     { value: "4", label: "お渡し済" },
   ];
-
-  function getRowColor(status: string) {
-    if (status === "1") return "bg-red"
-    if (status === "2") return "bg-blue"
-    if (status === "3") return "bg-green"
-    if (status === "4") return "bg-orenge"
-  }
-
-  // function extrairPreco(size: string[] | string): number {
-  //   const text = Array.isArray(size) ? size[0] : size;
-  //   const normalized = text.replace(/[０-９]/g, (c) =>
-  //     String.fromCharCode(c.charCodeAt(0) - 0xFEE0)
-  //   );
-  //   const match = normalized.match(/￥([\d,]+)/);
-  //   if (!match) return 0;
-  //   return Number(match[1].replace(/,/g, ""));
-  // }
 
 
   function handleStatusChange(id_order: number, newStatus: "1" | "2" | "3" | "4") {
@@ -177,22 +195,82 @@ export default function ListOrder() {
   }
 
   const customStyles: StylesConfig<StatusOption, false> = {
-    control: (provided, state) => ({
-      ...provided,
-      borderRadius: 8,
-      borderColor: state.isFocused ? "#007bff" : "#ccc",
-      boxShadow: state.isFocused ? "0 0 0 2px rgba(0,123,255,0.25)" : "none",
-      minHeight: 36,
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isSelected
-        ? "#007bff"
-        : state.isFocused
-        ? "#e9f3ff"
-        : "white",
-      color: state.isSelected ? "white" : "black",
-    }),
+    control: (provided, state) => {
+      const selected = state.selectProps.value as StatusOption | null;
+
+      let bgColor = "#000";
+      let fontColor = "#FFF";
+
+      if (selected) {
+        switch (selected.value) {
+          case "1":
+            bgColor = "#C40000"; // amarelo
+            fontColor = "#FFF";
+            break;
+          case "2":
+            bgColor = "#000DBD"; // verde
+            fontColor = "#FFF";
+            break;
+          case "3":
+            bgColor = "#287300"; // vermelho
+            fontColor = "#FFF";
+            break;
+          case "4":
+            bgColor = "#6B6B6B"; // vermelho
+            fontColor = "#FFF";
+            break;
+          default:
+            bgColor = "#000";
+            fontColor = "#FFF";
+        }
+      }
+
+      return {
+        ...provided,
+        borderRadius: 8,
+        borderColor: "none",
+        // boxShadow: state.isFocused ? "0 0 0 2px rgba(0,123,255,0.25)" : "none",
+        minHeight: 36,
+        backgroundColor: bgColor,
+        color: fontColor,
+      };
+    },
+    singleValue: (provided) => {
+      // garante fonte branca no texto selecionado
+      return {
+        ...provided,
+        color: "white",
+      };
+    },
+    option: (provided, state) => {
+      let bgColor = "white";
+      let fontColor = "#FFF";
+
+      switch ((state.data as StatusOption).value) {
+        case "1":
+          bgColor = state.isFocused ? "#C40000" : "white";
+          fontColor = state.isFocused ? "white" : "black";
+          break;
+        case "2":
+          bgColor = state.isFocused ? "#000DBD" : "white";
+          fontColor = state.isFocused ? "white" : "black";
+          break;
+        case "3":
+          bgColor = state.isFocused ? "#287300" : "white";
+          fontColor = state.isFocused ? "white" : "black";
+          break;
+        case "4":
+          bgColor = state.isFocused ? "#6B6B6B" : "white";
+          fontColor = state.isFocused ? "white" : "black";
+          break;
+      }
+
+      return {
+        ...provided,
+        backgroundColor: bgColor,
+        color: fontColor,
+      };
+    },
     dropdownIndicator: (provided) => ({
       ...provided,
       padding: "1px",
@@ -210,20 +288,6 @@ export default function ListOrder() {
             onChange={(e) => setSearch(e.target.value)}
             className='list-order-input'
           />
-        
-        <Select 
-          options={[
-            { value: "date", label: "日付ごと" },   // por data
-            { value: "order", label: "注文順" },   // por ordem
-          ]}
-          value={
-            { value: viewMode, 
-              label: viewMode === "date" ? "日付ごと" : "注文順", 
-            }}
-          onChange={(opt) => setViewMode(opt?.value as "date" | "order")}
-          isSearchable={false}
-          styles={{ container: (base) => ({ ...base, wiidth: 200 }) }}
-        />
         
         <div className='btn-actions'>
           <ExcelExportButton data={orders} filename='注文ケーキ.xlsx' sheetName='注文' />
@@ -266,7 +330,9 @@ export default function ListOrder() {
           <ul className='cake-list'>
             {scannedOrder.cakes.map((cake, index) => (
               <li key={`${cake.id_cake}-${index}`}>
-                {cake.name} - 個数: {cake.amount} - ¥{cake.size}
+                <span className='cake-name'>{cake.name}</span>
+                <span className='cake-amount'>¥{cake.size}</span>
+                <span className='cake-size'>個数: {cake.amount}</span>
               </li>
             ))}
           </ul>
@@ -275,11 +341,23 @@ export default function ListOrder() {
 
       {loading ? (
         <p>Loading...</p>  
-      ) : filteredOrders.length === 0 ? (
+      ) : orders.length === 0 ? (
         <p>注文が見つかりません。</p>
       ) : (
         <>
-          
+          <Select 
+          options={[
+            { value: "date", label: "受取日順" },  
+            { value: "order", label: "受付番号順" }, 
+          ]}
+          value={
+            { value: viewMode, 
+              label: viewMode === "date" ? "受取日順" : "受付番号順", 
+            }}
+          onChange={(opt) => setViewMode(opt?.value as "date" | "order")}
+          isSearchable={false}
+          styles={{ container: (base) => ({ ...base, wiidth: 200 }) }}
+        />
           
           {/* Tabelas (desktop) */}
           {displayOrders.map(([groupTitles, ordersForGroup]: [string, Order[]]) => {
@@ -295,25 +373,30 @@ export default function ListOrder() {
               0
             );
             return (
-            <div key={groupTitles} className="table-wrapper">
-              <h3 style={{ background: "#f0f0f0", padding: "8px" }}>{groupTitles}</h3>
+            <div key={groupTitles} className="table-wrapper scroll-cell">
+              {/* <h3 style={{ background: "#f0f0f0", padding: "8px" }}>{groupTitles}</h3> */}
+              
               <table className="list-order-table">
                 <thead>
                   <tr>
-                    <th>受付番号</th>
+                    <th className='id-cell'>受付番号</th>
                     <th className='situation-cell'>お会計</th>
                     <th>お名前</th>
+                    <th>受取希望日時</th>
                     <th>ご注文のケーキ</th>
-                    <th>受け取り希望時間</th>
+                    {/* <th>値段</th> */}
+                    <th>個数</th>
+                    <th>メッセージ</th>
                     <th>メッセージ</th>
                     <th>電話番号</th>
+                    <th>メールアドレス</th>
                   </tr>
                 </thead>
                 <tbody>
                   {ordersForGroup.map((order) => (
-                    <tr key={order.id_order} className={getRowColor(order.status)}>
+                    <tr key={order.id_order}>
                       <td>{String(order.id_order).padStart(4, "0")}</td>
-                      <td>
+                      <td className='situation-cell'>
                         <Select<StatusOption, false>
                           options={statusOptions}
                           value={statusOptions.find((opt) => opt.value === order.status)}
@@ -327,20 +410,74 @@ export default function ListOrder() {
                       <td>
                         {order.first_name} {order.last_name}
                       </td>
+                      <td>{order.date} {order.pickupHour}</td>
                       <td>
-                        <ul>
-                          {order.cakes.map((cake, index) => (
-                            <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
-                              {cake.name} <br /> 
-                              個数: {cake.amount} - {cake.size} - ¥{cake.price}<br />
-                              -{cake.message_cake}
-                            </li>
-                          ))}
-                        </ul>
-                      </td>
-                      <td>{order.pickupHour}</td>
+        <ul>
+          {order.cakes.map((cake, index) => (
+            <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
+              {cake.name} 
+              {cake.size} - ¥{cake.price}<br />
+            </li>
+          ))}
+        </ul>
+      </td>
+      <td style={{ textAlign: "center" }}>
+        <ul>
+          {order.cakes.map((cake, index) => (
+            <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
+              {cake.amount}
+            </li>
+          ))}
+        </ul>
+      </td>
+      <td style={{ textAlign: "center" }}>
+        <ul>
+          {order.cakes.map((cake, index) => (
+            <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
+              {cake.message_cake}
+            </li>
+          ))}
+        </ul>
+      </td>
+                      {/* <td>
+                        <table className='table-cake' style={{width: "100%"}}>
+                          <thead>
+                          <tr className='description'>
+                            <th>ケーキ名</th>
+                            <th>サイズ</th>
+                            <th>値段</th>
+                            <th>個数</th>
+                            <th>メッセージ</th>
+                          </tr>
+                        </thead>
+                          <tbody>
+
+                            {order.cakes.map((cake, index) => (
+                              <tr key={`${order.id_order}-${cake.id_cake}-${index}`}>
+                                <td>{cake.name}
+                                </td>
+                                <td>
+                                  ¥{cake.price}
+                                </td>
+                                <td>
+                                  {cake.amount}
+                                </td>
+                                <td>
+                                  {cake.size}
+                                </td>
+                                <td>
+                                  {cake.message_cake}
+                                </td>
+                              </tr>
+                            ))}
+
+                          </tbody>
+                        </table>
+                      </td> */}
+                      
                       <td>{order.message || " "}</td>
                       <td>{order.tel}</td>
+                      <td>{order.email}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -358,7 +495,7 @@ export default function ListOrder() {
 
           {/* Cards (mobile) */}
           <div className="mobile-orders">
-            {filteredOrders.map((order) => (
+            {orders.map((order) => (
               <div className="order-card" key={order.id_order}>
                 <div className="order-header">
                   <span>受付番号: {order.id_order}</span>
