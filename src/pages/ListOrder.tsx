@@ -383,10 +383,10 @@ export default function ListOrder() {
               0
             );
             return (
-            <div key={groupTitles} className="table-wrapper scroll-cell">
+            <div key={groupTitles} className="table-wrapper scroll-cell table-order-container">
               {/* <h3 style={{ background: "#f0f0f0", padding: "8px" }}>{groupTitles}</h3> */}
               
-              <table className="list-order-table">
+              <table className="list-order-table table-order">
                 <thead>
                   <tr>
                     <th className='id-cell'>受付番号</th>
@@ -396,8 +396,8 @@ export default function ListOrder() {
                     <th>ご注文のケーキ</th>
                     {/* <th>値段</th> */}
                     <th>個数</th>
-                    <th>メッセージ</th>
-                    <th>メッセージ</th>
+                    <th className='message-cell'>メッセージ</th>
+                    <th>その他</th>
                     <th>電話番号</th>
                     <th>メールアドレス</th>
                   </tr>
@@ -440,7 +440,7 @@ export default function ListOrder() {
                           ))}
                         </ul>
                       </td>
-                      <td style={{ textAlign: "left" }}>
+                      <td className='message-cell' style={{ textAlign: "left" }}>
                         <ul>
                           {order.cakes.map((cake, index) => (
                             <li key={`${order.id_order}-${cake.id_cake}-${index}`}>
@@ -505,7 +505,7 @@ export default function ListOrder() {
 
           {/* Cards (mobile) */}
           <div className="mobile-orders">
-            {/* {orders.map((order) => (
+            {orders.map((order) => (
               <div className="order-card" key={order.id_order}>
                 <div className="order-header">
                   <span>受付番号: {order.id_order}</span>
@@ -534,7 +534,7 @@ export default function ListOrder() {
                 </details>
               </div>
             
-            ))} */}
+            ))}
           </div>
         </>
       )}

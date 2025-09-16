@@ -204,7 +204,7 @@ export default function OrderCake() {
       const result = await res.json();
       if (result.success) {
         // setOrderId(result.id); // armazena o id do pedido
-        alert(`送信が完了しました！受付番号: ${result.id}`);
+        alert(`送信が完了しました！受付番号: ${String(result.id).padStart(4, "0")}`);
         
         // Limpar campos controlados
         setCakes([{ id_cake: cakesData.cakes[0].id_cake, name:"", amount: 1, size: "", price: 1, message_cake: "" }]);

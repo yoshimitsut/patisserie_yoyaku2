@@ -67,6 +67,16 @@ ul {
   font-weight: bold;
 }
 
+.list-order-table td.message-cell,
+.list-order-table td.message-cell {
+  max-width: 300px;
+  width: 300px;
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+
 .list-order-table thead {
   background-color: #185495f5;
   color: white;
@@ -113,6 +123,42 @@ ul {
 .mobile-orders {
   display: none;
 }
+
+.scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* scroll suave no iOS */
+  white-space: nowrap; /* evita quebra de linha */
+}
+
+/* Webkit (Chrome, Safari, iOS Safari) */
+.scroll-wrapper::-webkit-scrollbar {
+  height: 8px; /* altura da barra horizontal */
+}
+.scroll-wrapper::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+.scroll-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.table-order-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-order-container::-webkit-scrollbar {
+  height: 8px;
+}
+.table-order-container::-webkit-scrollbar-thumb {
+  background: #999;
+  border-radius: 4px;
+}
+.table-order-container::-webkit-scrollbar-track {
+  background: #eee;
+}
+
+
 
 /* Esconde tabela no mobile */
 .table-wrapper table{
