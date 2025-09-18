@@ -16,7 +16,7 @@ export default function ListOrder() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [showScanner, setShowScanner] = useState(false);
-  const [scannedOrder, setScannedOrder] = useState<Order | null>(null);
+  const [scannedOrderId, setScannedOrderId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<"date" | "order">("order");
   
@@ -25,10 +25,10 @@ export default function ListOrder() {
   const handleSearch = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-  setLoading(true);
-  if (handleSearch.current) {
-    clearTimeout(handleSearch.current);
-  }
+    setLoading(true);
+    if (handleSearch.current) {
+      clearTimeout(handleSearch.current);
+    }
 
   handleSearch.current = setTimeout(() => {
     const searchUrl = search 
@@ -46,15 +46,23 @@ export default function ListOrder() {
         console.error('Erro ao carregar pedidos:', error);
       })
       .finally(() => setLoading(false));
-  }, 500);
+    }, 500);
 
-  return () => {
-    if (handleSearch.current) {
-      clearTimeout(handleSearch.current);
+    return () => {
+      if (handleSearch.current) {
+        clearTimeout(handleSearch.current);
+      }
+    };
+  }, [search]);
+
+
+  // Use o useMemo para encontrar o objeto Order na lista orders
+  const foundScannedOrder = useMemo(() => {
+    if (scannedOrderId) {
+      return orders.find((o) => o.id_order === scannedOrderId);
     }
-  };
-}, [search]);
-
+    return null;
+  }, [scannedOrderId, orders]);
 
   // Agora, você não precisa mais do filteredOrders, use apenas 'orders' diretamente
   const groupedOrders = useMemo(() => {
@@ -66,32 +74,31 @@ export default function ListOrder() {
   }, [orders]);
 
   useEffect(() => {
-    if (showScanner) {
-      const scanner = new Html5QrcodeScanner('reader', { fps:10, qrbox: 250}, false);
+  if (showScanner) {
+    const scanner = new Html5QrcodeScanner('reader', { fps: 10, qrbox: 250 }, false);
 
-      scanner.render(
-        async (decodedText: string) => {
-          setShowScanner(false);
-          scanner.clear();
-          try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/list`);
-            const allOrders: Order[] = await res.json();
-            const found = allOrders.find((o) => o.id_order === Number(decodedText));
-            if (found) {
-              setScannedOrder(found);
-            } else {
-              alert('Pedido não encontrado.');
-            }
-          } catch (error) {
-            console.error('Erro ao buscar pedidos:', error);
+    scanner.render(
+      async (decodedText: string) => {
+        setShowScanner(false);
+        scanner.clear();
+        try {
+          const found = orders.find((o) => o.id_order === Number(decodedText));
+          if (found) {
+            // 🔑 Armazene apenas o ID no estado
+            setScannedOrderId(found.id_order);
+          } else {
+            alert('Pedido não encontrado.');
           }
-        },
-        (err) => {
-          console.warn('Erro ao ler QR Code:', err);
+        } catch (error) {
+          console.error('Erro ao buscar pedidos:', error);
         }
-      );
-    }
-  }, [showScanner]);
+      },
+      (err) => {
+        console.warn('Erro ao ler QR Code:', err);
+      }
+    );
+  }
+}, [showScanner, orders]);
 
   // const filteredOrders = useMemo(() => {
   //   const normalizedSeach = search.replace(/\D/g, "");
@@ -136,32 +143,32 @@ export default function ListOrder() {
   }, [viewMode, sortedGroupedOrders, orders]);
 
   type StatusOption = {
-    value: "1" | "2" | "3" | "4" | "5";
+    value: "a" | "b" | "c" | "d" | "e";
     label: string;
   };
 
   const statusOptions: StatusOption[] = [
-    { value: "1", label: "未" },
-    { value: "2", label: "ネット決済済" },
-    { value: "3", label: "店頭支払い済" },
-    { value: "4", label: "お渡し済" },
-    { value: "5", label: "キャンセル" },
+    { value: "a", label: "未" },
+    { value: "b", label: "ネット決済済" },
+    { value: "c", label: "店頭支払い済" },
+    { value: "d", label: "お渡し済" },
+    { value: "e", label: "キャンセル" },
   ];
 
 
-  function handleStatusChange(id_order: number, newStatus: "1" | "2" | "3" | "4" | "5") {
+  function handleStatusChange(id_order: number, newStatus: "a" | "b" | "c" | "d" | "e") {
     const order = orders.find((o) => o.id_order === id_order);
     if(!order) return;
 
     const statusMap: Record<string, string> = {
-      "1": "未",
-      "2": "ネット決済済",
-      "3": "店頭支払い済",
-      "4": "お渡し済",
-      "5": "キャンセル",
+      "a": "未",
+      "b": "ネット決済済",
+      "c": "店頭支払い済",
+      "d": "お渡し済",
+      "e": "キャンセル",
     };
 
-    const currentStatus = statusMap[order.status ?? "1"];
+    const currentStatus = statusMap[order.status ?? "a"];
     const nextStatus = statusMap[newStatus];
 
     const confirmed = window.confirm(
@@ -205,23 +212,23 @@ export default function ListOrder() {
 
       if (selected) {
         switch (selected.value) {
-          case "1":
+          case "a":
             bgColor = "#C40000";
             fontColor = "#FFF";
             break;
-          case "2":
+          case "b":
             bgColor = "#000DBD"; 
             fontColor = "#FFF";
             break;
-          case "3":
+          case "c":
             bgColor = "#287300"; 
             fontColor = "#FFF";
             break;
-          case "4":
+          case "d":
             bgColor = "#6B6B6B"; 
             fontColor = "#FFF";
             break;
-          case "5":
+          case "e":
             bgColor = "#000";
             fontColor = "#fff";
             break;
@@ -253,23 +260,23 @@ export default function ListOrder() {
       let fontColor = "#FFF";
 
       switch ((state.data as StatusOption).value) {
-        case "1":
+        case "a":
           bgColor = state.isFocused ? "#C40000" : "white";
           fontColor = state.isFocused ? "white" : "black";
           break;
-        case "2":
+        case "b":
           bgColor = state.isFocused ? "#000DBD" : "white";
           fontColor = state.isFocused ? "white" : "black";
           break;
-        case "3":
+        case "c":
           bgColor = state.isFocused ? "#287300" : "white";
           fontColor = state.isFocused ? "white" : "black";
           break;
-        case "4":
+        case "d":
           bgColor = state.isFocused ? "#6B6B6B" : "white";
           fontColor = state.isFocused ? "white" : "black";
           break;
-        case "5":
+        case "e":
           bgColor = state.isFocused ? "#000" : "white";
           fontColor = state.isFocused ? "white" : "black";
           break;
@@ -316,29 +323,29 @@ export default function ListOrder() {
         <div id="reader" style={{ width: '300px', marginBottom: 20 }}></div>
       )}
 
-      {scannedOrder && (
+      {foundScannedOrder && (
         <div style={{ border: '1px solid #007bff', padding: 12, marginBottom:20 }}>
           <strong>
             <Select
               options={statusOptions}
-              value={statusOptions.find((opt) => opt.value === scannedOrder.status)}
+              value={statusOptions.find((opt) => Number(opt.value) === Number(foundScannedOrder.status))}
               onChange={(selected) =>
                 handleStatusChange(
-                  scannedOrder.id_order,
-                  selected?.value as "1" | "2" | "3" | "4" | "5"
+                  foundScannedOrder.id_order,
+                  selected?.value as "a" | "b" | "c" | "d" | "e"
                 )
               }
               styles={customStyles}
               isSearchable={false}
             />
           </strong>
-          <strong>受付番号: </strong> {scannedOrder.id_order}<br />
-          <strong>お名前: </strong> {scannedOrder.first_name} {scannedOrder.last_name}<br />
-          <strong>電話番号: </strong> {scannedOrder.tel}<br />
-          <strong>受取日: </strong> {scannedOrder.date} - {scannedOrder.pickupHour}<br />
+          <strong>受付番号: </strong> {foundScannedOrder.id_order}<br />
+          <strong>お名前: </strong> {foundScannedOrder.first_name} {foundScannedOrder.last_name}<br />
+          <strong>電話番号: </strong> {foundScannedOrder.tel}<br />
+          <strong>受取日: </strong> {foundScannedOrder.date} - {foundScannedOrder.pickupHour}<br />
           <strong>ご注文のケーキ: </strong> 
           <ul className='cake-list'>
-            {scannedOrder.cakes.map((cake, index) => (
+            {foundScannedOrder.cakes.map((cake, index) => (
               <li key={`${cake.id_cake}-${index}`}>
                 <span className='cake-name'>{cake.name}</span>
                 <span className='cake-amount'>¥{cake.size}</span>
@@ -416,6 +423,7 @@ export default function ListOrder() {
                           styles={customStyles}
                           isSearchable={false}
                         />
+                        
                       </td>
                       <td>
                         {order.first_name} {order.last_name}
@@ -508,14 +516,13 @@ export default function ListOrder() {
             {orders.map((order) => (
               <div className="order-card" key={order.id_order}>
                 <div className="order-header">
-                  <span>受付番号: {order.id_order}</span>
-                  <span>{order.status}</span>
+                  <span>受付番号: {String(order.id_order).padStart(4, "0")}</span>
                 </div>
                   <Select
                     options={statusOptions}
                     value={statusOptions.find((opt) => opt.value === order.status)}
                     onChange={(selected) =>
-                      handleStatusChange(order.id_order, selected?.value as "1" | "2" | "3" | "4" | "5")
+                      handleStatusChange(order.id_order, selected?.value as "a" | "b" | "c" | "d" | "e")
                     }
                   />
                 <p>お名前: {order.first_name} {order.last_name}</p>
