@@ -20,6 +20,9 @@ export default function ListOrder() {
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<"date" | "order">("order");
   
+  // const cakeLimitOfDay = 0;
+  // const limityHours = 0;
+
   const navigate = useNavigate();
   
   const handleSearch = useRef<NodeJS.Timeout | null>(null);
@@ -173,7 +176,7 @@ export default function ListOrder() {
 
     const confirmed = window.confirm(
       `(確認)ステータスを変更しますか？\n\n` +
-      `受付番号: ${order.id_order}\n` +
+      `受付番号: ${String(order.id_order).padStart(4, "0")}\n` +
       `お名前: ${order.first_name} ${order.last_name}\n\n` +
       `${currentStatus} → ${nextStatus}`
     );
