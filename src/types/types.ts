@@ -14,6 +14,10 @@ export type Cake = {
   image: string;
 };
 
+export type CakeJson = {
+  cakes: Cake[];
+};
+
 export type Order = {
   id_order: number;
   id_client: string;
@@ -48,6 +52,7 @@ export type CakeOrder = {
 export type OptionType = {
   value: string;
   label: string;
+  image?: string;
 };
 
 export type MyContainerProps = {

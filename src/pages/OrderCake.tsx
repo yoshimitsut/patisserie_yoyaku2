@@ -1,26 +1,54 @@
-import { useState } from 'react';
-import cakesData from '../data/cake.json';
+import { useState, useEffect } from 'react';
 import Select from 'react-select';
 import DatePicker, { CalendarContainer } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ja } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
-// import { data } from 'react-router-dom';
-import { addDays, isAfter, isSameDay, 
-  // getDay, 
-  format } from 'date-fns';
+import { addDays, isAfter, isSameDay, format } from 'date-fns';
 import type { StylesConfig, GroupBase } from 'react-select';
 
-import type {OrderCake, OptionType, MyContainerProps, 
-  // Cake
- } from "../types/types.ts"
+import type {OrderCake, OptionType, MyContainerProps, CakeJson } from "../types/types.ts"
 import "./OrderCake.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-
 export default function OrderCake() {
   const navigate = useNavigate();
+
+  const [cakesData, setCakesData] = useState<CakeJson | null>(null);
+  const [loadingCakes, setLoadingCakes] = useState(true);
+
+  // Define the cakes state and initialize it with a default, safe value.
+  const [cakes, setCakes] = useState<OrderCake[]>([
+    { id_cake: 0, name: "", amount: 1, size: "", price: 1, message_cake: "" }
+  ]);
+  
+  // Use useEffect to fetch data and update the state safely.
+  useEffect(() => {
+    fetch(`${API_URL}/api/cake`)
+      .then(res => res.json())
+      .then(data => {
+        setCakesData(data);
+        // After fetching data, initialize the cakes state correctly.
+        if (data.cakes.length > 0) {
+          const initialCake = data.cakes[0];
+          setCakes([{
+            id_cake: initialCake.id_cake,
+            name: initialCake.name,
+            amount: 1,
+            size: "",
+            price: 1,
+            message_cake: ""
+          }]);
+        }
+      })
+      .catch(error => {
+        console.error("Erro ao carregar dados dos bolos:", error);
+      })
+      .finally(() => {
+        setLoadingCakes(false);
+      });
+  }, [API_URL]); // Add API_URL as a dependency
 
   const MyContainer = ({ className, children }: MyContainerProps) => {
     return (
@@ -50,16 +78,16 @@ export default function OrderCake() {
   // }))
 
   // opções de bolo
-  const cakeOptions: OptionType[] = cakesData.cakes.map(c => ({
+  const cakeOptions: OptionType[] = cakesData?.cakes.map(c => ({
     value: String(c.id_cake),
     label: c.name,
     image: c.image
-  }));
+  })) || [];
 
   // estado dos bolos escolhidos
-  const [cakes, setCakes] = useState<OrderCake[]>([
-    {id_cake: cakesData.cakes[0].id_cake, name: "", amount: 1, size: "", price: 1},
-  ]);
+  // const [cakes, setCakes] = useState<OrderCake[]>([
+  //   {id_cake: cakesData.cakes[0].id_cake, name: "", amount: 1, size: "", price: 1},
+  // ]);
   
   // opções de quantidade
   const quantityOptions: OptionType[] = Array.from({ length: 10 }, (_, i) => ({
@@ -68,10 +96,24 @@ export default function OrderCake() {
   }));
 
   // adicionar bolos
+  // const addCake = () => {
+  //   setCakes(prev => [...prev, {id_cake: 0, name: "", amount: 1, size: "", price: 1}]);
+  // };
   const addCake = () => {
-    setCakes(prev => [...prev, {id_cake: 0, name: "", amount: 1, size: "", price: 1}]);
+    setCakes(prev => [
+      ...prev,
+      {
+        id_cake: 0, // valor temporário até que o usuário selecione um bolo
+        name: "",
+        amount: 1,
+        size: "",
+        price: 1,
+        message_cake: ""
+      }
+    ])
   };
-  
+
+
   // remover bolos
   const removeCake = (index: number) => {
     setCakes(prev => prev.filter((_, i) => i !== index))
@@ -197,7 +239,7 @@ export default function OrderCake() {
       pickupHour,
       message: (document.getElementById("message") as HTMLTextAreaElement).value,
       cakes: cakes.map(c => {
-        const cakeData = cakesData.cakes.find(cake => Number(cake.id_cake) === Number(c.id_cake));
+        const cakeData = cakesData?.cakes.find(cake => Number(cake.id_cake) === Number(c.id_cake));
         return {
           id_cake: cakeData?.id_cake,
           name: cakeData?.name,
@@ -208,7 +250,7 @@ export default function OrderCake() {
         };
       })
     };
-    
+
     try {
       const res = await fetch(`${API_URL}/api/reservar`, {
         method: "POST",
@@ -223,7 +265,18 @@ export default function OrderCake() {
         navigate("check");
         
         // Limpar campos controlados
-        setCakes([{ id_cake: cakesData.cakes[0].id_cake, name:"", amount: 1, size: "", price: 1, message_cake: "" }]);
+        if (cakesData && cakesData.cakes.length > 0) {
+          const initialCake = cakesData.cakes[0];
+          setCakes([{
+            id_cake: initialCake.id_cake,
+            name: initialCake.name,
+            amount: 1,
+            size: "",
+            price: 1,
+            message_cake: ""
+          }]);
+        }
+
         setSelectedDate(null);
         setPickupHour("時間を選択");
 
@@ -250,6 +303,15 @@ export default function OrderCake() {
     return str.replace(/[\u3041-\u3096]/g, (ch) =>
       String.fromCharCode(ch.charCodeAt(0) + 0x60)
     );
+  }
+  
+  if (loadingCakes) {
+    return <div>ケーキの情報を読み込んでいます...</div>;
+  }
+
+  // Conditionally render the form once cakesData is available
+  if (!cakesData) {
+    return <div>ケーキの情報を読み込めませんでした。エラーが発生しました。</div>;
   }
   
   return (
@@ -352,7 +414,7 @@ export default function OrderCake() {
                 <div className='input-group'>
                   <Select<OptionType>
                   options={quantityOptions}
-                  value={quantityOptions.find(q => q.value === String(item.amount) || null)}
+                  value={quantityOptions.find(q => q.value === String(item.amount)) || null}
                   onChange={selected =>
                     updateCake(index, 'amount', selected? Number(selected.value) : 1)
                   }
