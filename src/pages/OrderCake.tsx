@@ -11,67 +11,51 @@ import "./OrderCake.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// 1. Atualize o tipo OptionType com uma nova propriedade
 type CustomOptionType = OptionType & {
   isDisabled?: boolean;
 };
 
-// 2. Componente de opção personalizado com a tipagem correta
-const CustomOption = (props: OptionProps<CustomOptionType>) => {
-  const { innerProps, label, isDisabled } = props;
-  return !isDisabled ? (
-    <components.Option {...props} />
-  ) : (
-    <div {...innerProps} style={{ color: 'red', textDecoration: 'line-through', padding: 10, cursor: 'not-allowed' }}>
-      {label}
-    </div>
-  );
-};
+// const CustomOption = (props: OptionProps<CustomOptionType>) => {
+//   const { innerProps, label, isDisabled, isSelected } = props;
+//   const shouldShowDisabledStyle = isDisabled && !isSelected;
 
+//   return shouldShowDisabledStyle ? (
+//     <div {...innerProps} style={{ color: '#888', textDecoration: 'line-through', padding: 10, cursor: 'not-allowed' }}>
+//       {label}
+//     </div>
+//   ) : (
+//     <components.Option {...props} />
+//   );
+// };
 
 export default function OrderCake() {
   const navigate = useNavigate();
 
   const [cakesData, setCakesData] = useState<CakeJson | null>(null);
-  const [loadingCakes, setLoadingCakes] = useState(true);
-
   const [cakes, setCakes] = useState<OrderCake[]>([
     { id_cake: 0, name: "", amount: 1, size: "", price: 1, message_cake: "" }
   ]);
   
+  // Efeito para carregar os dados dos bolos apenas uma vez
   useEffect(() => {
     fetch(`${API_URL}/api/cake`)
       .then(res => res.json())
       .then(data => {
         setCakesData(data);
-        if (data.cakes.length > 0) {
-          const initialCake = data.cakes[0];
-          setCakes([{
-            id_cake: initialCake.id_cake,
-            name: initialCake.name,
-            amount: 1,
-            size: "",
-            price: 1,
-            message_cake: ""
-          }]);
-        }
       })
       .catch(error => {
         console.error("Erro ao carregar dados dos bolos:", error);
-      })
-      .finally(() => {
-        setLoadingCakes(false);
       });
-  }, [API_URL]);
+  }, []);
 
   const MyContainer = ({ className, children }: MyContainerProps) => {
     return (
       <div>
         <CalendarContainer className={className}>{children}</CalendarContainer>
         <div className='calendar-notice'>
-          <div style={{ padding: "20px" }}>
+          {/* <div style={{ padding: "20px" }}>
               <p>３日前よりご予約可能（２週間後まで）</p>
-            </div>
+            </div> */}
           <div className='notice'>                                                                                            
             <div className='selectable'></div>
               <span>予約可能日  /  <span className='yassumi'>x</span> 予約不可</span>
@@ -83,22 +67,47 @@ export default function OrderCake() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🔑 Modificado para adicionar a lógica de estoque e a propriedade isDisabled
+  const getOrderedAmount = (cakeId: number) => {
+    return cakes.reduce((total, c) => (c.id_cake === cakeId ? total + c.amount : total), 0)
+  };
+
   const cakeOptions: CustomOptionType[] = cakesData?.cakes.map(c => {
-    const isSoldOut = c.stock <= 0;
+    const orderedAmount = getOrderedAmount(c.id_cake);
+    const isSoldOut = c.stock <= 0 || (orderedAmount > 0 && orderedAmount >= c.stock);
     return {
       value: String(c.id_cake),
-      label: isSoldOut ? `${c.name} （完売）` : c.name,
+      label: c.name,
       image: c.image,
-      isDisabled: isSoldOut, // Adiciona a propriedade de desativação
+      isDisabled: isSoldOut,
     };
   }) || [];
 
+  // Calcula quanto já foi usado de um bolo, excluindo a instância atual
+  const getUsedStock = (cakeId: number, excludeIndex?: number) => {
+    return cakes.reduce((acc, c, idx) => {
+      // Verifica se o bolo é o mesmo e não é o item atual da lista
+      if (idx !== excludeIndex && c.id_cake === cakeId) {
+        return acc + c.amount;
+      }
+      return acc;
+    }, 0);
+  }
 
-  const quantityOptions: OptionType[] = Array.from({ length: 10 }, (_, i) => ({
-    value: String(i + 1),
-    label: String(i + 1),
-  }));
+  // Gera opções de quantidade de acordo com o estoque restante
+  const getQuantityOptions = (cake: { id_cake: number; stock: number} | undefined, index: number): OptionType[] => {
+    if (!cake) return [];
+
+    const used = getUsedStock(cake.id_cake, index);
+    const remaining = Math.max(0, cake.stock - used);
+    
+    // Limita o máximo de opções ao estoque restante ou 10
+    const limit = Math.min(10, remaining); 
+    
+    return Array.from({ length: limit }, (_, i) => ({
+      value: String(i + 1),
+      label: String(i + 1),
+    }));
+  };
 
   const addCake = () => {
     setCakes(prev => [
@@ -207,7 +216,7 @@ export default function OrderCake() {
     }),
     option: (provided, state) => ({
       ...provided,
-      color: state.isDisabled ? 'red' : 'black',
+      color: state.isDisabled ? '#888' : 'black',
       textDecoration: state.isDisabled ? 'line-through' : 'none',
     }),
   };
@@ -290,14 +299,6 @@ export default function OrderCake() {
     return str.replace(/[\u3041-\u3096]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) + 0x60));
   }
   
-  if (loadingCakes) {
-    return <div>ケーキの情報を読み込んでいます...</div>;
-  }
-  
-  if (!cakesData) {
-    return <div>ケーキの情報を読み込めませんでした。エラーが発生しました。</div>;
-  }
-  
   return (
     <div className='reservation-main'>
       <div className="container">
@@ -305,7 +306,7 @@ export default function OrderCake() {
         <form className="form-order" onSubmit={handleSubmit}>
           <div className="cake-information">
             {cakes.map((item, index) => {
-              const selectedCakeData = cakesData.cakes.find(
+              const selectedCakeData = cakesData?.cakes.find(
                 c => c.id_cake === item.id_cake
               );
               
@@ -337,18 +338,25 @@ export default function OrderCake() {
                     />
                   )}
                   <div className='input-group'>
-                    <Select<CustomOptionType>
-                      options={cakeOptions}
-                      value={cakeOptions.find(c => Number(c.value) === item.id_cake) || null}
-                      onChange={selected =>  
-                        updateCake(index, "id_cake", selected ? Number(selected.value) : 0)
-                      }
-                      classNamePrefix="react-select"
-                      placeholder="ケーキを選択"
-                      required
-                      styles={customStyles}
-                      components={{ Option: CustomOption }}
-                    />
+                      <Select<CustomOptionType>
+                          options={cakeOptions}
+                          value={cakeOptions.find(c => Number(c.value) === item.id_cake) || null}
+                          onChange={selected =>  
+                              updateCake(index, "id_cake", selected ? Number(selected.value) : 0)
+                          }
+                          classNamePrefix="react-select"
+                          placeholder="ケーキを選択"
+                          required
+                          styles={customStyles}
+                          // components={{ Option: CustomOption }}
+                          formatOptionLabel={(option, { context }) => {
+                            const isSelected = Number(option.value) === item.id_cake;
+                            if (context === 'menu' && option.isDisabled && !isSelected) {
+                              return <div style={{ color: '#888' }}>{option.label} （完売）</div>;
+                          }
+                          return option.label;
+                        }}
+                      />
                     <label className='select-group'>*ケーキ名:</label>
                   </div>
                   {sizeOptions.length > 0 && (
@@ -381,18 +389,21 @@ export default function OrderCake() {
                   )}
                   <div className='input-group'>
                     <Select<OptionType>
-                      options={quantityOptions}
-                      value={quantityOptions.find(q => q.value === String(item.amount)) || null}
+                      options={getQuantityOptions(selectedCakeData, index)}
+                      value={getQuantityOptions(selectedCakeData, index).find(
+                        q => q.value === String(item.amount)
+                      ) || null}
                       onChange={selected =>
-                        updateCake(index, 'amount', selected? Number(selected.value) : 1)
+                        updateCake(index, "amount", selected ? Number(selected.value) : 0)
                       }
-                      classNamePrefix='react-select'
-                      placeholder='数量'
+                      classNamePrefix="react-select"
+                      placeholder="数量"
                       styles={customStyles}
                       required
                     />
                     <label className='select-group'>*個数:</label>
                   </div>
+
                   <div className='input-group'>
                     <label htmlFor="message_cake">メッセージプレート</label>
                     <textarea name="message_cake" id="message_cake" placeholder="ご要望がある場合のみご記入ください。"
