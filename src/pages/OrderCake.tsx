@@ -15,6 +15,10 @@ type CustomOptionType = OptionType & {
   isDisabled?: boolean;
 };
 
+type TimeOptionType = OptionType & {
+  isDisabled?: boolean;
+};
+
 export default function OrderCake() {
   const navigate = useNavigate();
 
@@ -22,7 +26,8 @@ export default function OrderCake() {
   const [cakes, setCakes] = useState<OrderCake[]>([
     { id_cake: 0, name: "", amount: 1, size: "", price: 1, message_cake: "" }
   ]);
-  const [hoursOptions, setHoursOptions] = useState<OptionType[]>([]);
+  
+  const [hoursOptions, setHoursOptions] = useState<TimeOptionType[]>([]);
   
   // Efeito para carregar os dados dos bolos apenas uma vez
   useEffect(() => {
@@ -44,9 +49,11 @@ export default function OrderCake() {
 
         const options = data.map((t: {time:string; limit: number}) => ({
           value: t.time,
-          label: t.time
-        }))
-        
+          // label: t.limit > 0 ? t.time : `${t.time} （定員に達した為、選択できません。）`,
+          label: t.time,
+          isDisabled: t.limit <= 0
+        }));
+
         setHoursOptions(options);
       } catch (error) {
         console.error("Erro ao carregarhorários", error);
@@ -208,13 +215,13 @@ export default function OrderCake() {
       boxShadow: 'none',
       border: '1px solid #000',
       borderRadius: '10px',
-      paddingTop: '10px',
-      paddingBottom: '10px',
+      minHeight: "38px",
+      cursor: "pointer", 
     }),
     option: (provided, state) => ({
       ...provided,
       color: state.isDisabled ? '#888' : 'black',
-      // textDecoration: state.isDisabled ? 'line-through' : 'none',
+      cursor: state.isDisabled ? "not-allowed" : "pointer",
     }),
   };
 
@@ -344,6 +351,7 @@ export default function OrderCake() {
                           classNamePrefix="react-select"
                           placeholder="ケーキを選択"
                           required
+                          isSearchable={false} 
                           styles={customStyles}
                           // components={{ Option: CustomOption }}
                           formatOptionLabel={(option, { context }) => {
@@ -360,6 +368,7 @@ export default function OrderCake() {
                     <div className='input-group'>
                       <Select<OptionType>
                         options = {sizeOptions}
+                        isSearchable={false} 
                         value={item.size
                           ? { 
                             value: JSON.stringify({ size: item.size, price: item.price }), 
@@ -390,6 +399,7 @@ export default function OrderCake() {
                       value={getQuantityOptions(selectedCakeData, index).find(
                         q => q.value === String(item.amount)
                       ) || null}
+                      isSearchable={false} 
                       onChange={selected =>
                         updateCake(index, "amount", selected ? Number(selected.value) : 0)
                       }
@@ -476,15 +486,22 @@ export default function OrderCake() {
               />
             </div>
             <div className='input-group'>
-              <Select<OptionType>
-                inputId="pickupHour"
+              <Select<TimeOptionType>
+                // inputId="pickupHour"
                 options={hoursOptions}
                 value={hoursOptions.find(h => h.value === pickupHour)}
                 onChange={(selected) => setPickupHour(selected?.value || "時間を選択")}
                 classNamePrefix="react-select"
                 styles={customStyles}
                 placeholder="時間を選択"
+  isSearchable={false} 
                 required
+                formatOptionLabel={(option, { context }) => {
+                  if (context === 'menu' && option.isDisabled) {
+                    return <p>{option.label} <span style={{ color: 'red', fontSize: '0.8rem' }}>（定員に達した為、選択できません。）</span></p>;
+                  }
+                  return option.label;
+                }}
               />
               <label htmlFor="pickupHour" className='select-group'>受け取り希望時間</label>
             </div>

@@ -460,42 +460,6 @@ export default function ListOrder() {
                           ))}
                         </ul>
                       </td>
-                      {/* <td>
-                        <table className='table-cake' style={{width: "100%"}}>
-                          <thead>
-                          <tr className='description'>
-                            <th>ケーキ名</th>
-                            <th>サイズ</th>
-                            <th>値段</th>
-                            <th>個数</th>
-                            <th>メッセージ</th>
-                          </tr>
-                        </thead>
-                          <tbody>
-
-                            {order.cakes.map((cake, index) => (
-                              <tr key={`${order.id_order}-${cake.id_cake}-${index}`}>
-                                <td>{cake.name}
-                                </td>
-                                <td>
-                                  ¥{cake.price}
-                                </td>
-                                <td>
-                                  {cake.amount}
-                                </td>
-                                <td>
-                                  {cake.size}
-                                </td>
-                                <td>
-                                  {cake.message_cake}
-                                </td>
-                              </tr>
-                            ))}
-
-                          </tbody>
-                        </table>
-                      </td> */}
-                      
                       <td>{order.message || " "}</td>
                       <td>{order.tel}</td>
                       <td>{order.email}</td>
