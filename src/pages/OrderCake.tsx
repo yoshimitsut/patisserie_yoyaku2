@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Select, { components, type OptionProps, type StylesConfig, type GroupBase } from 'react-select';
+import Select, { type StylesConfig, type GroupBase } from 'react-select';
 import DatePicker, { CalendarContainer } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ja } from 'date-fns/locale';
@@ -15,19 +15,6 @@ type CustomOptionType = OptionType & {
   isDisabled?: boolean;
 };
 
-// const CustomOption = (props: OptionProps<CustomOptionType>) => {
-//   const { innerProps, label, isDisabled, isSelected } = props;
-//   const shouldShowDisabledStyle = isDisabled && !isSelected;
-
-//   return shouldShowDisabledStyle ? (
-//     <div {...innerProps} style={{ color: '#888', textDecoration: 'line-through', padding: 10, cursor: 'not-allowed' }}>
-//       {label}
-//     </div>
-//   ) : (
-//     <components.Option {...props} />
-//   );
-// };
-
 export default function OrderCake() {
   const navigate = useNavigate();
 
@@ -35,6 +22,7 @@ export default function OrderCake() {
   const [cakes, setCakes] = useState<OrderCake[]>([
     { id_cake: 0, name: "", amount: 1, size: "", price: 1, message_cake: "" }
   ]);
+  const [hoursOptions, setHoursOptions] = useState<OptionType[]>([]);
   
   // Efeito para carregar os dados dos bolos apenas uma vez
   useEffect(() => {
@@ -47,6 +35,25 @@ export default function OrderCake() {
         console.error("Erro ao carregar dados dos bolos:", error);
       });
   }, []);
+
+  useEffect(() => {
+    const fetchTimeslots = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/timeslots`);
+        const data = await res.json();
+
+        const options = data.map((t: {time:string; limit: number}) => ({
+          value: t.time,
+          label: t.time
+        }))
+        
+        setHoursOptions(options);
+      } catch (error) {
+        console.error("Erro ao carregarhorários", error);
+      }
+    };
+    fetchTimeslots();
+  },[]);
 
   const MyContainer = ({ className, children }: MyContainerProps) => {
     return (
@@ -145,20 +152,10 @@ export default function OrderCake() {
 
   const [pickupHour, setPickupHour] = useState("時間を選択");
 
-  const hoursOptions = [
-    { value: "11~13時", label: "11~13時" },
-    { value: "13~17時", label: "13~17時" },
-    { value: "17~19時", label: "17~19時" },
-  ];
-
   const today = new Date();
   const blockDay = 3;
   const daysOff = [
     { day: 12, month: 7 },
-    { day: 15, month: 7 },
-    { day: 20, month: 7 },
-    { day: 21, month: 7 },
-    { day: 20, month: 8 },
     { day: 21, month: 8 },
   ];
 
@@ -217,7 +214,7 @@ export default function OrderCake() {
     option: (provided, state) => ({
       ...provided,
       color: state.isDisabled ? '#888' : 'black',
-      textDecoration: state.isDisabled ? 'line-through' : 'none',
+      // textDecoration: state.isDisabled ? 'line-through' : 'none',
     }),
   };
 
