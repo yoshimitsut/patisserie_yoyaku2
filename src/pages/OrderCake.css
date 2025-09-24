@@ -162,7 +162,7 @@ body {
   font-size: 1.2rem;
   width: 100%;
   height: auto;
-  max-width: 500px; /* centraliza se quiser */
+  /* max-width: 500px; centraliza se quiser */
 }
 
   .react-datepicker__header h2 {
@@ -203,13 +203,15 @@ body {
     text-align: left;
     margin: 0px !important;
   }
-
+  
   .react-datepicker__day-name {
     width: 11vw;
     max-width: 65px;
+    height: 5vh;
     aspect-ratio: 1 / .65;
     font-size: larger;
     margin: 0px !important;
+    margin-top: 3px !important;
   }
 
   .calendar-notice {
@@ -230,20 +232,35 @@ body {
     position: relative;
     margin: 5px;
   }
+  .rowgroup {
+    text-align: center;
+  }
 
   .selectable {
     border: 4px solid red;
-    width: 2.5vw;
-    height: 2.5vw; /* garante proporção 1:1 */
-    border-radius: 50%; 
-    margin-top: 2px;
+    inline-size: 3vw;
+    /* aspect-ratio: 1 / 1; */
+    border-radius: 50%;
+    -webkit-border-radius: 50%;
+    max-inline-size: 20px;
+    margin-top: 8px;
+    
+    /* width: 3vw; */
+    /* height: 3vw; */
+    max-width: 25px;
+    max-height: 25px;
     box-sizing: border-box;
+
+
+    width: clamp(20px, 3vw, 25px);
+    height: clamp(20px, 3vw, 25px);
   }
   
   .yassumi {
     color:#a1a1a1;
     font-size: 1.8rem;
     font-family: sans-serif;
+    margin-top: 3px;
   }
   
   .react-datepicker__day--disabled .selectable{
@@ -254,6 +271,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    height: 4.5rem;
   }
 
   .cake-information, .date-information, .client-information {
@@ -338,27 +356,31 @@ body {
   border-radius: 0.3rem;
 }
 
-.react-datepicker__day-name[aria-label^="日"] {
-  color: red;
+/* Domingo no cabeçalho */
+.react-datepicker__day-name:nth-child(1) {
+  color: red !important;
 }
 
 .react-datepicker__day.domingo-vermelho {
-  color: red;
+  color: red !important;
 }
 
-.react-datepicker__day-name[aria-label^="土"] {
-  color: #0e56ff;
+/* Sábado no cabeçalho */
+.react-datepicker__day-name:nth-child(7) {
+  color: #0e56ff !important;
 }
 
 .react-datepicker__day.sabado-azul {
-  color: #0e56ff;
+  color: #0e56ff !important;
 }
 
 .react-datepicker__day--disabled{
   color: #ccc !important;
 }
 
-
+.react-datepicker__day-names {
+  text-align: center;
+}
 
 /* Tablets */
 @media (min-width: 640px) and (max-width: 767px) {
@@ -409,7 +431,7 @@ body {
     }
   }
   .react-datepicker__day{
-    width: 12vw;
+    /* width: 12vw; */
   }
   .react-datepicker__day-name {
     width: 12vw;
