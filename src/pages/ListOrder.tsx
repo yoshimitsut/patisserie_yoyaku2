@@ -19,7 +19,27 @@ export default function ListOrder() {
   const [scannedOrderId, setScannedOrderId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<"date" | "order">("order");
-  
+
+  const [statusFilter, setStatusFilter] = useState<string>("すべて");
+
+
+  type StatusOption = {
+    value: "a" | "b" | "c" | "d" | "e";
+    label: string;
+  };
+
+  const statusOptions: StatusOption[] = [
+    { value: "a", label: "未" },
+    { value: "b", label: "ネット決済済" },
+    { value: "c", label: "店頭支払い済" },
+    { value: "d", label: "お渡し済" },
+    { value: "e", label: "キャンセル" },
+  ];
+
+  const filterOptions: { value: string; label: string }[] = [
+  { value: "すべて", label: "すべて" },
+  ...statusOptions
+];
   // const cakeLimitOfDay = 0;
   // const limityHours = 0;
 
@@ -103,32 +123,6 @@ export default function ListOrder() {
   }
 }, [showScanner, orders]);
 
-  // const filteredOrders = useMemo(() => {
-  //   const normalizedSeach = search.replace(/\D/g, "");
-
-  //   return orders.filter((o) => {
-  //     const idStr = String(o.id_order).padStart(4, "0"); 
-  //     const normalizedTel = o.tel.replace(/\D/g, "");
-      
-  //     return (
-  //       idStr.includes(search) ||
-  //       o.id_order.toString().includes(search) || 
-  //       o.first_name.toLowerCase().includes(search.toLowerCase()) ||
-  //       o.last_name.toLowerCase().includes(search.toLowerCase()) ||
-  //       normalizedTel.includes(normalizedSeach)
-  //     );
-  //   });
-  // }, [orders, search]);
-
-
-  // const groupedOrders = useMemo(() => {
-  //   return filteredOrders.reduce((acc: Record<string, Order[]>, order) => {
-  //     if (!acc[order.date]) acc[order.date] = [];
-  //     acc[order.date].push(order);
-  //     return acc;
-  //   }, {});
-  // }, [filteredOrders]);
-
   // transforma em array e ordena pelas datas
   const sortedGroupedOrders = useMemo(() => {
     return Object.entries(groupedOrders) as [string, Order[]][];
@@ -145,18 +139,6 @@ export default function ListOrder() {
     }
   }, [viewMode, sortedGroupedOrders, orders]);
 
-  type StatusOption = {
-    value: "a" | "b" | "c" | "d" | "e";
-    label: string;
-  };
-
-  const statusOptions: StatusOption[] = [
-    { value: "a", label: "未" },
-    { value: "b", label: "ネット決済済" },
-    { value: "c", label: "店頭支払い済" },
-    { value: "d", label: "お渡し済" },
-    { value: "e", label: "キャンセル" },
-  ];
 
 
   function handleStatusChange(id_order: number, newStatus: "a" | "b" | "c" | "d" | "e") {
@@ -400,7 +382,20 @@ export default function ListOrder() {
                 <thead>
                   <tr>
                     <th className='id-cell'>受付番号</th>
-                    <th className='situation-cell'>お会計</th>
+                    <th className='situation-cell'>お会計
+
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+
+ <Select<{ value: string; label: string }, false>
+  options={filterOptions}
+  value={filterOptions.find(opt => opt.value === statusFilter)}
+  onChange={(selected) => setStatusFilter(selected?.value || "すべて")}
+  isSearchable={false}
+  styles={{ container: (base) => ({ ...base, width: 180 }) }}
+/>
+
+</div>
+                    </th>
                     <th>お名前</th>
                     <th>受取希望日時</th>
                     <th>ご注文のケーキ</th>
@@ -413,7 +408,24 @@ export default function ListOrder() {
                   </tr>
                 </thead>
                 <tbody>
-                  {ordersForGroup.map((order) => (
+                  {ordersForGroup
+                  .filter((order) => {
+                    if (statusFilter !== "すべて" && order.status!== statusFilter){
+                      return false;
+                    }
+                    if (search.trim() !== ""){
+                      const term = search.toLowerCase();
+                      return (
+                        String(order.id_order).toLowerCase().includes(term) ||
+                        order.first_name.toLowerCase().includes(term) ||
+                        order.last_name.toLowerCase().includes(term) ||
+                        order.tel.toLowerCase().includes(term)
+                      );
+                    }
+                    return true;
+                  })
+                  
+                  .map((order) => (
                     <tr key={order.id_order}>
                       <td>{String(order.id_order).padStart(4, "0")}</td>
                       <td className='situation-cell'>

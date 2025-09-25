@@ -1,0 +1,31 @@
+.hero-container {
+  width: 800px;
+  margin: 0 auto; /* centraliza horizontalmente */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.cake-card {
+  cursor: pointer;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.3s;
+}
+
+.cake-card:hover {
+  transform: scale(1.05);
+}
+
+.cake-card.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.cake-image {
+  width: 100%;
+  height: 200px; /* altura fixa, ajustável */
+  object-fit: cover;
+  display: block;
+}
