@@ -59,3 +59,18 @@ export type MyContainerProps = {
   className?: string;
   children?: ReactNode;
 };
+
+export type Slot = {
+  time: string;
+  limit: number;
+};
+
+export type TimeslotDay = {
+  date: string;
+  slots: Slot[];
+};
+
+export type TimeslotResponse = {
+  availableDates: string[];
+  timeslots: TimeslotDay[];
+};

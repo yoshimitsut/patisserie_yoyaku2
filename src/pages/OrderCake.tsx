@@ -6,7 +6,7 @@ import { ja } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { addDays, isAfter, isSameDay, format } from 'date-fns';
 
-import type { OrderCake, OptionType, MyContainerProps, CakeJson } from "../types/types.ts";
+import type { OrderCake, OptionType, MyContainerProps, CakeJson, TimeslotDay, TimeslotResponse } from "../types/types.ts";
 import "./OrderCake.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -27,6 +27,8 @@ export default function OrderCake() {
     { id_cake: 0, name: "", amount: 1, size: "", price: 1, message_cake: "" }
   ]);
   
+  const isDateAllowed = (date: Date) => !excludedDates.some((d) => isSameDay(d, date));
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [hoursOptions, setHoursOptions] = useState<TimeOptionType[]>([]);
   
   // Efeito para carregar os dados dos bolos apenas uma vez
@@ -41,26 +43,40 @@ export default function OrderCake() {
       });
   }, []);
 
+  const [allowedDates, setAllowedDates] = useState<Date[]>([]);
+  const [timeSlotsData, setTimeSlotsData] = useState<TimeslotDay[]>([]);
+  
   useEffect(() => {
-    const fetchTimeslots = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/timeslots`);
-        const data = await res.json();
+    fetch(`${API_URL}/api/timeslots`)
+      .then(res => res.json())
+      .then((data: TimeslotResponse) => {
+        setTimeSlotsData(data.timeslots || []);
+        const dates = data.availableDates.map((d) => {
+          const [year, month, day] = d.split("-").map(Number);
+          return new Date(year, month - 1, day);
+        });
+        setAllowedDates(dates);
+      })
+      .catch(err => console.error("Erro ao carregar datas:", err));
+  }, []);
 
-        const options = data.map((t: {time:string; limit: number}) => ({
-          value: t.time,
-          // label: t.limit > 0 ? t.time : `${t.time} （定員に達した為、選択できません。）`,
-          label: t.time,
-          isDisabled: t.limit <= 0
-        }));
+  useEffect(() => {
+    if(!selectedDate) return;
 
-        setHoursOptions(options);
-      } catch (error) {
-        console.error("Erro ao carregarhorários", error);
-      }
-    };
-    fetchTimeslots();
-  },[]);
+    const formattedDate = selectedDate.toISOString().split("T")[0];
+    const dayData = timeSlotsData.find((d) => d.date === formattedDate);
+
+    if (dayData) {
+      const options = dayData.slots.map((slot) => ({
+        value: slot.time,
+        label: slot.limit > 0 ? slot.time : `${slot.time}`,
+        isDisabled: slot.limit <= 0
+      }));
+      setHoursOptions(options);
+    } else {
+      setHoursOptions([]);
+    }
+  }, [selectedDate, timeSlotsData]);
 
   const MyContainer = ({ className, children }: MyContainerProps) => {
     return (
@@ -166,12 +182,12 @@ export default function OrderCake() {
     { day: 21, month: 8 },
   ];
 
-  const allowedDates = [
-    new Date(today.getFullYear(), 11, 22),
-    new Date(today.getFullYear(), 11, 23),
-    new Date(today.getFullYear(), 11, 24),
-    new Date(today.getFullYear(), 11, 25),
-  ];
+  // const allowedDates = [
+  //   new Date(today.getFullYear(), 11, 22),
+  //   new Date(today.getFullYear(), 11, 23),
+  //   new Date(today.getFullYear(), 11, 24),
+  //   new Date(today.getFullYear(), 11, 25),
+  // ];
 
   const generateSpecificDatesWithMonth = () => {
     const dates: Date[] = [];
@@ -206,8 +222,6 @@ export default function OrderCake() {
     ...generateSpecificDatesWithMonth(),
   ];
 
-  const isDateAllowed = (date: Date) => !excludedDates.some((d) => isSameDay(d, date));
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
   const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
     control: (provided) => ({
@@ -472,11 +486,15 @@ export default function OrderCake() {
                 onFocus={handleFocus}
                 required
                 renderDayContents={(day, date) => {
+                  const dayOfWeek = date.getDay();
                   const isAvailable = allowedDates.some(d => isSameDay(d, date));
                   const isFuture = isAfter(date, today);
                   const isHoliday = !isAvailable;
+                  const extraClass =
+                        dayOfWeek === 0 ? "domingo-vermelho" :
+                        dayOfWeek === 6 ? "sabado-azul" : "";
                   return (
-                    <div className="day-cell">
+                    <div className={`day-cell ${extraClass}`}>
                       <span>{day}</span>
                       {isAvailable && isFuture && <div className="selectable"></div>}
                       {isHoliday && <span className="yassumi">x</span>}
