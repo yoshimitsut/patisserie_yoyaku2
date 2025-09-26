@@ -1,15 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import './Hero.css'
+import type { Cake } from '../types/types'
 
 const API_URL = import.meta.env.VITE_API_URL;
-
-type Cake = {
-  id_cake: number;
-  name: string;
-  image: string;
-  stock: number;
-};
 
 export default function Hero() {
   const [cakes, setCakes] = useState<Cake[]>([]);
@@ -29,20 +23,32 @@ export default function Hero() {
   };
 
   return (
-    <div className="hero-container">
-      {cakes.map((cake) => (
+    <div className="hero-main">
+    <div className="hero-wrapper">
+  <div className="hero-grid">
+    {cakes.map((cake, index) => {
+      let extraClass = "";
+      if (index === 0) extraClass = "big";
+      if (index === 1) extraClass = "tall";
+      if (index === 2) extraClass = "wide";
+
+      return (
         <div
           key={cake.id_cake}
-          className={`cake-card ${cake.stock <= 0 ? "disabled" : ""}`}
+          className={`hero-cell ${extraClass} ${cake.stock <= 0 ? "disabled" : ""}`}
           onClick={() => handleClick(cake)}
         >
           <img
             src={cake.image}
             alt={cake.name}
-            className="cake-image"
+            className="hero-img"
           />
         </div>
-      ))}
-    </div>
+      );
+    })}
+  </div>
+</div>
+</div>
+
   );
 }

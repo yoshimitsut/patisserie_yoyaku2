@@ -1,31 +1,54 @@
-.hero-container {
-  width: 800px;
-  margin: 0 auto; /* centraliza horizontalmente */
+.hero-main {
+background-color: #990000;
+}
+
+.hero-wrapper {
+  padding: 15vh 5vw;
+  width: 90vw;
+  height: 70vh;
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
   justify-content: center;
+  align-items: center;
 }
 
-.cake-card {
-  cursor: pointer;
-  border-radius: 10px;
-  overflow: hidden;
-  transition: transform 0.3s;
-}
-
-.cake-card:hover {
-  transform: scale(1.05);
-}
-
-.cake-card.disabled {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-.cake-image {
+.hero-grid {
+  padding: 1vw 1vh 1vw 1vh;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 colunas iguais */
+  grid-template-rows: repeat(2, 1fr);    /* 2 linhas iguais */
   width: 100%;
-  height: 200px; /* altura fixa, ajustável */
-  object-fit: cover;
+  height: 100%;
+  gap: 10px;
+  background-color: #fff;
+}
+
+.hero-cell {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.hero-cell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3); 
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.hero-cell:hover::after {
+  opacity: 1; /* só a imagem em hover escurece */
+}
+
+.hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* preenche a área sem distorcer */
   display: block;
+  transition: transform 0.3s ease;
+}
+
+.hero-cell:hover .hero-img {
+  transform: scale(1.05);
 }

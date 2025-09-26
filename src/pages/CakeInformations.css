@@ -1,0 +1,26 @@
+.cake-main {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 20px;
+  gap: 2rem;
+
+  .cake-description {
+    width: 30rem;
+  }
+
+}
+
+.reserve-btn {
+  width: 7rem;
+  height: 3rem;
+  border-radius: 30px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: 0.5s all;
+}
+
+.reserve-btn:hover{
+  background-color: #c9c9c9d2;
+}

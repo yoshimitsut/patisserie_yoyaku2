@@ -3,7 +3,7 @@ import Select, { type StylesConfig, type GroupBase } from 'react-select';
 import DatePicker, { CalendarContainer } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ja } from 'date-fns/locale';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addDays, isAfter, isSameDay, format } from 'date-fns';
 
 import type { OrderCake, OptionType, MyContainerProps, CakeJson, TimeslotDay, TimeslotResponse } from "../types/types.ts";
@@ -30,7 +30,7 @@ export default function OrderCake() {
   const isDateAllowed = (date: Date) => !excludedDates.some((d) => isSameDay(d, date));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [hoursOptions, setHoursOptions] = useState<TimeOptionType[]>([]);
-  
+
   // Efeito para carregar os dados dos bolos apenas uma vez
   useEffect(() => {
     fetch(`${API_URL}/api/cake`)
@@ -77,6 +77,31 @@ export default function OrderCake() {
       setHoursOptions([]);
     }
   }, [selectedDate, timeSlotsData]);
+
+
+
+const [searchParams] = useSearchParams();
+const selectedCakeName = searchParams.get("cake");
+
+useEffect(() => {
+  if (!cakesData) return;
+
+  if (selectedCakeName) {
+    // procura pelo bolo que corresponde ao nome ou id
+    const selectedCake = cakesData.cakes.find(c => String(c.id_cake) === selectedCakeName || c.name === selectedCakeName);
+    if (selectedCake) {
+      setCakes([{
+        id_cake: selectedCake.id_cake,
+        name: selectedCake.name,
+        amount: 1,
+        size: "",
+        price: 1,
+        message_cake: ""
+      }]);
+    }
+  }
+}, [cakesData, selectedCakeName]);
+
 
   const MyContainer = ({ className, children }: MyContainerProps) => {
     return (
@@ -357,21 +382,20 @@ export default function OrderCake() {
                   )}
                   <div className='input-group'>
                       <Select<CustomOptionType>
-                          options={cakeOptions}
-                          value={cakeOptions.find(c => Number(c.value) === item.id_cake) || null}
-                          onChange={selected =>  
-                              updateCake(index, "id_cake", selected ? Number(selected.value) : 0)
-                          }
-                          classNamePrefix="react-select"
-                          placeholder="ケーキを選択"
-                          required
-                          isSearchable={false} 
-                          styles={customStyles}
-                          // components={{ Option: CustomOption }}
-                          formatOptionLabel={(option, { context }) => {
-                            const isSelected = Number(option.value) === item.id_cake;
-                            if (context === 'menu' && option.isDisabled && !isSelected) {
-                              return <div style={{ color: '#888' }}>{option.label} （完売）</div>;
+                        options={cakeOptions}
+                        value={cakeOptions.find(c => Number(c.value) === item.id_cake) || null}
+                        onChange={selected =>  
+                            updateCake(index, "id_cake", selected ? Number(selected.value) : 0)
+                        }
+                        classNamePrefix="react-select"
+                        placeholder="ケーキを選択"
+                        required
+                        isSearchable={false} 
+                        styles={customStyles}
+                        formatOptionLabel={(option, { context }) => {
+                          const isSelected = Number(option.value) === item.id_cake;
+                          if (context === 'menu' && option.isDisabled && !isSelected) {
+                            return <div style={{ color: '#888' }}>{option.label} （完売）</div>;
                           }
                           return option.label;
                         }}

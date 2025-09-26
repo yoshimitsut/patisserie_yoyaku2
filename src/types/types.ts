@@ -10,6 +10,7 @@ export type Cake = {
   id_cake: number;
   name: string;
   sizes: SizeOption[];
+  description: string;
   stock: number;
   image: string;
 };
@@ -74,3 +75,5 @@ export type TimeslotResponse = {
   availableDates: string[];
   timeslots: TimeslotDay[];
 };
+
+export type StatusOption = { value: string; label: string };
