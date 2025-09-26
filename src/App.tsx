@@ -1,4 +1,4 @@
-import './App.css';
+import './App.module.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ListOrder from './pages/ListOrder';
 import OrderCake from './pages/OrderCake';

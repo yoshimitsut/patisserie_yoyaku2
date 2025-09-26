@@ -169,6 +169,7 @@ ul {
   overflow-y: auto;
   white-space: nowrap;
   scrollbar-gutter: stable both-edges;
+  padding-bottom: 190px;
 }
 
 .table-wrapper::-webkit-scrollbar {

@@ -11,20 +11,25 @@ import type { Order } from '../types/types';
 import './ListOrder.css';
 
 
-
 export default function ListOrder() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [showScanner, setShowScanner] = useState(false);
   const [scannedOrderId, setScannedOrderId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
-  const [viewMode, setViewMode] = useState<"date" | "order">("order");
+  const [viewMode, ] = useState<"date" | "order">("order");
 
   const [statusFilter, setStatusFilter] = useState<string>("すべて");
-
+  const [cakeFilter, setCakeFilter] = useState("すべて");
+  const [dateFilter, setDateFilter] = useState("すべて");
 
   type StatusOption = {
     value: "a" | "b" | "c" | "d" | "e";
+    label: string;
+  };
+
+  type FilterOption = {
+    value: string;
     label: string;
   };
 
@@ -36,10 +41,15 @@ export default function ListOrder() {
     { value: "e", label: "キャンセル" },
   ];
 
-  const filterOptions: { value: string; label: string }[] = [
-  { value: "すべて", label: "すべて" },
-  ...statusOptions
-];
+  const filterOptions: FilterOption[] = [
+    { value: "すべて", label: "すべて" },
+    { value: "a", label: "未" },
+    { value: "b", label: "ネット決済済" },
+    { value: "c", label: "店頭支払い済" },
+    { value: "d", label: "お渡し済" },
+    { value: "e", label: "キャンセル" },
+  ]
+   
   // const cakeLimitOfDay = 0;
   // const limityHours = 0;
 
@@ -188,6 +198,45 @@ export default function ListOrder() {
     })
   }
 
+type FilterStylesConfig = StylesConfig<FilterOption, false>;
+  const customStylesFilter: FilterStylesConfig = {
+  
+    option: (provided, state) => {
+      let bgColor = "#000";
+      let fontColor = "#FFF";
+
+      switch ((state.data as StatusOption).value) {
+        case "a":
+          bgColor = state.isFocused ? "#C40000" : "white";
+          fontColor = state.isFocused ? "white" : "black";
+          break;
+        case "b":
+          bgColor = state.isFocused ? "#000DBD" : "white";
+          fontColor = state.isFocused ? "white" : "black";
+          break;
+        case "c":
+          bgColor = state.isFocused ? "#287300" : "white";
+          fontColor = state.isFocused ? "white" : "black";
+          break;
+        case "d":
+          bgColor = state.isFocused ? "#6B6B6B" : "white";
+          fontColor = state.isFocused ? "white" : "black";
+          break;
+        case "e":
+          bgColor = state.isFocused ? "#000" : "white";
+          fontColor = state.isFocused ? "white" : "black";
+          break;
+      }
+
+      return {
+        ...provided,
+        backgroundColor: bgColor,
+        color: fontColor,
+      };
+    },
+
+  }
+
   const customStyles: StylesConfig<StatusOption, false> = {
     control: (provided, state) => {
       const selected = state.selectProps.value as StatusOption | null;
@@ -278,11 +327,12 @@ export default function ListOrder() {
       padding: "1px",
     }),
   };
+   
+  // type FilterOption = { value: string; label: string };
 
   return (
     <div className='list-order-container'>
       <div className="list-order-actions">
-        
         <input 
             type="text" 
             placeholder='検索：お名前、電話番号、受付番号などを入力'
@@ -300,8 +350,6 @@ export default function ListOrder() {
             <img src="/icons/table.avif" alt="graphic icon" />
           </button>
         </div>
-
-
       </div>
       
       {showScanner && (
@@ -347,7 +395,7 @@ export default function ListOrder() {
         <p>注文が見つかりません。</p>
       ) : (
         <>
-          <Select 
+          {/* <Select 
           options={[
             { value: "date", label: "受取日順" },  
             { value: "order", label: "受付番号順" }, 
@@ -359,7 +407,7 @@ export default function ListOrder() {
           onChange={(opt) => setViewMode(opt?.value as "date" | "order")}
           isSearchable={false}
           styles={{ container: (base) => ({ ...base, wiidth: 200 }) }}
-        />
+        /> */}
           
           {/* Tabelas (desktop) */}
           {displayOrders.map(([groupTitles, ordersForGroup]: [string, Order[]]) => {
@@ -383,22 +431,35 @@ export default function ListOrder() {
                   <tr>
                     <th className='id-cell'>受付番号</th>
                     <th className='situation-cell'>お会計
-
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-
- <Select<{ value: string; label: string }, false>
+{/* Filtro por pagamento */}
+ <Select<FilterOption, false>
   options={filterOptions}
   value={filterOptions.find(opt => opt.value === statusFilter)}
   onChange={(selected) => setStatusFilter(selected?.value || "すべて")}
   isSearchable={false}
-  styles={{ container: (base) => ({ ...base, width: 180 }) }}
-/>
+  styles={customStylesFilter} // funciona, mas talvez precise de ajustes visuais para "すべて"
+ />
 
-</div>
                     </th>
                     <th>お名前</th>
-                    <th>受取希望日時</th>
-                    <th>ご注文のケーキ</th>
+                    <th>受取希望日時
+                      {/* Filtro por data */}
+<select value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
+  <option value="すべて">すべて</option>
+  {Array.from(new Set(orders.map((o) => o.date))).map((date) => (
+    <option key={date} value={date}>{date}</option>
+  ))}
+</select>
+                    </th>
+                    <th>ご注文のケーキ
+                      {/* Filtro por bolo */}
+<select value={cakeFilter} onChange={(e) => setCakeFilter(e.target.value)}>
+  <option value="すべて">すべて</option>
+  {Array.from(new Set(orders.flatMap((o) => o.cakes.map(c => c.name)))).map((cake) => (
+    <option key={cake} value={cake}>{cake}</option>
+  ))}
+</select>
+                    </th>
                     {/* <th>値段</th> */}
                     <th>個数</th>
                     <th className='message-cell'>メッセージ</th>
@@ -408,22 +469,27 @@ export default function ListOrder() {
                   </tr>
                 </thead>
                 <tbody>
-                  {ordersForGroup
-                  .filter((order) => {
-                    if (statusFilter !== "すべて" && order.status!== statusFilter){
-                      return false;
-                    }
-                    if (search.trim() !== ""){
-                      const term = search.toLowerCase();
-                      return (
-                        String(order.id_order).toLowerCase().includes(term) ||
-                        order.first_name.toLowerCase().includes(term) ||
-                        order.last_name.toLowerCase().includes(term) ||
-                        order.tel.toLowerCase().includes(term)
-                      );
-                    }
-                    return true;
-                  })
+                  {
+                  ordersForGroup
+  .filter((order) => {
+    // const term = search.trim().toLowerCase();
+
+    const matchesStatus = statusFilter === "すべて" || order.status === statusFilter;
+    const matchesCake = cakeFilter === "すべて" || order.cakes.some(cake => cake.name === cakeFilter);
+    const matchesDate = dateFilter === "すべて" || order.date === dateFilter;
+    // const matchesSearch = !term || 
+    //   order.id_order.toString().includes(term) ||
+    //   order.first_name.toLowerCase().includes(term) ||
+    //   order.last_name.toLowerCase().includes(term) ||
+    //   order.tel.includes(term) ||
+    //   order.cakes.some(cake => cake.name.toLowerCase().includes(term)); 
+
+    return matchesStatus && matchesCake && matchesDate 
+    // && matchesSearch
+    ;
+  })
+
+
                   
                   .map((order) => (
                     <tr key={order.id_order}>
@@ -475,6 +541,9 @@ export default function ListOrder() {
                       <td>{order.message || " "}</td>
                       <td>{order.tel}</td>
                       <td>{order.email}</td>
+                      {/* <td>
+                        <button onClick={() => handleEditOrder(order.id_order)}>編集</button>
+                      </td> */}
                     </tr>
                   ))}
                 </tbody>
@@ -492,7 +561,7 @@ export default function ListOrder() {
 
           {/* Cards (mobile) */}
           <div className="mobile-orders">
-            {orders.map((order) => (
+            {/* {orders.map((order) => (
               <div className="order-card" key={order.id_order}>
                 <div className="order-header">
                   <span>受付番号: {String(order.id_order).padStart(4, "0")}</span>
@@ -503,6 +572,11 @@ export default function ListOrder() {
                     onChange={(selected) =>
                       handleStatusChange(order.id_order, selected?.value as "a" | "b" | "c" | "d" | "e")
                     }
+                    menuPortalTarget={document.body}  // <--- aqui
+                    styles={{
+                      ...customStyles,
+                      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    }}
                   />
                 <p>お名前: {order.first_name} {order.last_name}</p>
                 <p>受取日: {order.date} {order.pickupHour}</p>
@@ -520,7 +594,7 @@ export default function ListOrder() {
                 </details>
               </div>
             
-            ))}
+            ))} */}
           </div>
         </>
       )}
