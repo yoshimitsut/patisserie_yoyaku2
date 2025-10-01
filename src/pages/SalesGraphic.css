@@ -1,0 +1,47 @@
+.cake-table-wrapper {
+  padding-bottom: 20px;
+}
+
+.summary-table-container {
+  padding: 20px;
+  overflow-x: auto;
+  font-family: "Noto Sans JP", sans-serif;
+}
+
+.table-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.summary-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 900px;
+  text-align: center;
+}
+
+.summary-table th,
+.summary-table td {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+}
+
+.summary-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.summary-table tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.total-row {
+  background-color: #e0f7fa;
+  font-weight: bold;
+}
+
+.total-cell {
+  background-color: #fff3e0;
+  font-weight: bold;
+}
