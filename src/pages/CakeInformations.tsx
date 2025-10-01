@@ -44,49 +44,57 @@ export default function CakeInformations() {
   }
 
   return (
-    <div className="cake-main" >
-      <img
-        src={selectedCake.image}
-        alt={selectedCake.name}
-        style={{ maxWidth: "400px"}}
-        />
-        <h2 className="cake-name">{selectedCake.name}</h2>
-        <p className="cake-description">{selectedCake.description}</p>
-      {/* <p><strong>Estoque:</strong> {selectedCake.stock}</p> */}
+    <div className="cake-wrapper" >
+      <div className="cake-main" >
+        <div className="main-right">
+          <img
+            src={selectedCake.image}
+            alt={selectedCake.name}
+            style={{ maxWidth: "400px"}}
+            />
+        </div>
 
-      <table
-        style={{
-          margin: "20px auto",
-          borderCollapse: "collapse",
-          minWidth: "300px",
-        }}
-      >
-        {/* <thead>
-          <tr>
-            <th style={{ border: "1px solid #ccc", padding: "8px" }}>Tamanho</th>
-            <th style={{ border: "1px solid #ccc", padding: "8px" }}>Preço</th>
-          </tr>
-        </thead> */}
-        <tbody>
-          {selectedCake.sizes.map((size, index) => (
-            <tr key={index}>
-              <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                {size.size}
-              </td>
-              <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                ¥{size.price.toLocaleString("ja-JP")} （税込）
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <div className="main-left">
+            <h2 className="cake-name">{selectedCake.name}</h2>
+            <p className="cake-description">{selectedCake.description}</p>
+          {/* <p><strong>Estoque:</strong> {selectedCake.stock}</p> */}
 
-      <button
-          onClick={handleReserve}
-          className="reserve-btn"
-      >
-        予約
-      </button>
+          <table
+            style={{
+              margin: "20px auto",
+              borderCollapse: "collapse",
+              minWidth: "300px",
+            }}
+          >
+            {/* <thead>
+              <tr>
+                <th style={{ border: "1px solid #ccc", padding: "8px" }}>Tamanho</th>
+                <th style={{ border: "1px solid #ccc", padding: "8px" }}>Preço</th>
+              </tr>
+            </thead> */}
+            <tbody>
+              {selectedCake.sizes.map((size, index) => (
+                <tr key={index}>
+                  <td style={{ border: "1px solid #ccc", padding: "8px" }}>
+                    {size.size}
+                  </td>
+                  <td style={{ border: "1px solid #ccc", padding: "8px" }}>
+                    ¥{size.price.toLocaleString("ja-JP")} （税込）
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <button
+              onClick={handleReserve}
+              className="reserve-btn"
+          >
+            予約
+          </button>
+        </div>
+
+      </div>
     </div>
   );
 }
