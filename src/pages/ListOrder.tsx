@@ -6,7 +6,7 @@ import Select from "react-select";
 import ExcelExportButton from '../components/ExcelExportButton';
 
 import type { StylesConfig, SingleValue } from 'react-select';
-import type { Order } from '../types/types';
+import type { Order, StatusOptionStatus } from '../types/types';
 
 import './ListOrder.css';
 
@@ -22,18 +22,14 @@ export default function ListOrder() {
   const [statusFilter, setStatusFilter] = useState<string>("すべて");
   const [cakeFilter, setCakeFilter] = useState("すべて");
   const [dateFilter, setDateFilter] = useState("すべて");
-
-  type StatusOption = {
-    value: "a" | "b" | "c" | "d" | "e";
-    label: string;
-  };
+  const [hourFilter, setHourFilter] = useState("すべて");
 
   type FilterOption = {
     value: string;
     label: string;
   };
 
-  const statusOptions: StatusOption[] = [
+  const statusOptions: StatusOptionStatus[] = [
     { value: "a", label: "未" },
     { value: "b", label: "ネット決済済" },
     { value: "c", label: "店頭支払い済" },
@@ -198,48 +194,47 @@ export default function ListOrder() {
     })
   }
 
-type FilterStylesConfig = StylesConfig<FilterOption, false>;
-  const customStylesFilter: FilterStylesConfig = {
+// type FilterStylesConfig = StylesConfig<FilterOption, false>;
+//   const customStylesFilter: FilterStylesConfig = {
   
-    option: (provided, state) => {
-      let bgColor = "#000";
-      let fontColor = "#FFF";
+//     option: (provided, state) => {
+//       let bgColor = "#000";
+//       let fontColor = "#FFF";
 
-      switch ((state.data as StatusOption).value) {
-        case "a":
-          bgColor = state.isFocused ? "#C40000" : "white";
-          fontColor = state.isFocused ? "white" : "black";
-          break;
-        case "b":
-          bgColor = state.isFocused ? "#000DBD" : "white";
-          fontColor = state.isFocused ? "white" : "black";
-          break;
-        case "c":
-          bgColor = state.isFocused ? "#287300" : "white";
-          fontColor = state.isFocused ? "white" : "black";
-          break;
-        case "d":
-          bgColor = state.isFocused ? "#6B6B6B" : "white";
-          fontColor = state.isFocused ? "white" : "black";
-          break;
-        case "e":
-          bgColor = state.isFocused ? "#000" : "white";
-          fontColor = state.isFocused ? "white" : "black";
-          break;
-      }
+//       switch ((state.data as StatusOptionStatus).value) {
+//         case "a":
+//           bgColor = state.isFocused ? "#C40000" : "white";
+//           fontColor = state.isFocused ? "white" : "black";
+//           break;
+//         case "b":
+//           bgColor = state.isFocused ? "#000DBD" : "white";
+//           fontColor = state.isFocused ? "white" : "black";
+//           break;
+//         case "c":
+//           bgColor = state.isFocused ? "#287300" : "white";
+//           fontColor = state.isFocused ? "white" : "black";
+//           break;
+//         case "d":
+//           bgColor = state.isFocused ? "#6B6B6B" : "white";
+//           fontColor = state.isFocused ? "white" : "black";
+//           break;
+//         case "e":
+//           bgColor = state.isFocused ? "#000" : "white";
+//           fontColor = state.isFocused ? "white" : "black";
+//           break;
+//       }
 
-      return {
-        ...provided,
-        backgroundColor: bgColor,
-        color: fontColor,
-      };
-    },
+//       return {
+//         // ...provided,
+//         backgroundColor: bgColor,
+//         color: fontColor,
+//       };
+//     },
+//   }
 
-  }
-
-  const customStyles: StylesConfig<StatusOption, false> = {
+  const customStyles: StylesConfig<StatusOptionStatus, false> = {
     control: (provided, state) => {
-      const selected = state.selectProps.value as StatusOption | null;
+      const selected = state.selectProps.value as StatusOptionStatus | null;
 
       let bgColor = "#000";
       let fontColor = "#fff";
@@ -293,7 +288,7 @@ type FilterStylesConfig = StylesConfig<FilterOption, false>;
       let bgColor = "#000";
       let fontColor = "#FFF";
 
-      switch ((state.data as StatusOption).value) {
+      switch ((state.data as StatusOptionStatus).value) {
         case "a":
           bgColor = state.isFocused ? "#C40000" : "white";
           fontColor = state.isFocused ? "white" : "black";
@@ -361,7 +356,7 @@ type FilterStylesConfig = StylesConfig<FilterOption, false>;
           <strong>
             <Select
               options={statusOptions}
-              value={statusOptions.find((opt) => Number(opt.value) === Number(foundScannedOrder.status))}
+              value={statusOptions.find((opt) => String(opt.value) === String(foundScannedOrder.status))}
               onChange={(selected) =>
                 handleStatusChange(
                   foundScannedOrder.id_order,
@@ -411,47 +406,103 @@ type FilterStylesConfig = StylesConfig<FilterOption, false>;
           
           {/* Tabelas (desktop) */}
           {displayOrders.map(([groupTitles, ordersForGroup]: [string, Order[]]) => {
-            const totalProdutos = ordersForGroup.reduce(
-              (sum, order) => sum + order.cakes.reduce((s, c) => s + c.amount, 0),
-              0
-            );
+            // const totalProdutos = ordersForGroup.reduce(
+            //   (sum, order) => sum + order.cakes.reduce((s, c) => s + c.amount, 0),
+            //   0
+            // );
 
-            const totalValor = ordersForGroup.reduce(
-              (sum, order) =>
-                sum +
-                order.cakes.reduce((s, c) => s + (c.price) * c.amount, 0),
-              0
-            );
+            // const totalValor = ordersForGroup.reduce(
+            //   (sum, order) =>
+            //     sum +
+            //     order.cakes.reduce((s, c) => s + (c.price) * c.amount, 0),
+            //   0
+            // );
             return (
             <div key={groupTitles} className="table-wrapper scroll-cell table-order-container">
               {/* <h3 style={{ background: "#f0f0f0", padding: "8px" }}>{groupTitles}</h3> */}
               
               <table className="list-order-table table-order">
+                <div>
+                  
                 <thead>
                   <tr>
                     <th className='id-cell'>受付番号</th>
-                    <th className='situation-cell'>お会計
-{/* Filtro por pagamento */}
- <Select<FilterOption, false>
-  options={filterOptions}
-  value={filterOptions.find(opt => opt.value === statusFilter)}
-  onChange={(selected) => setStatusFilter(selected?.value || "すべて")}
-  isSearchable={false}
-  styles={customStylesFilter} // funciona, mas talvez precise de ajustes visuais para "すべて"
- />
+                    <th className='situation-cell'>
+                      <div className='filter-column'>
+
+                      お会計
+<select
+  value={statusFilter}
+  onChange={(e) => setStatusFilter(e.target.value)}
+>
+  {filterOptions.map((opt) => (
+    <option key={opt.value} value={opt.value}>
+      {opt.label}
+    </option>
+  ))}
+</select>
+  </div>
+
 
                     </th>
                     <th>お名前</th>
-                    <th>受取希望日時
-                      {/* Filtro por data */}
-<select value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
-  <option value="すべて">すべて</option>
-  {Array.from(new Set(orders.map((o) => o.date))).map((date) => (
-    <option key={date} value={date}>{date}</option>
-  ))}
-</select>
-                    </th>
-                    <th>ご注文のケーキ
+                    <th>
+                      <div  className='filter-column'>
+  受取希望日時
+                      <div className='filter-column-date'>
+  {/* Filtro por data */}
+  <select
+    value={dateFilter}
+    onChange={(e) => {
+      setDateFilter(e.target.value);
+      setHourFilter("すべて"); // reset do horário quando muda o dia
+    }}
+  >
+    <option value="すべて">すべて</option>
+    {Array.from(new Set(orders.map((o) => o.date)))
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+      .map((date) => (
+        <option key={date} value={date}>
+          {date}
+        </option>
+      ))}
+  </select>
+
+  {/* Filtro por horário (dependente do dia) */}
+  <select
+    value={hourFilter}
+    onChange={(e) => setHourFilter(e.target.value)}
+    style={{ marginLeft: "6px" }}
+  >
+    <option value="すべて">すべて</option>
+    {Array.from(
+      new Set(
+        orders
+          .filter((o) => dateFilter === "すべて" || o.date === dateFilter)
+          .map((o) => o.pickupHour)
+      )
+    )
+      .sort((a, b) => {
+        const numA = parseInt(a);
+        const numB = parseInt(b);
+        return numA - numB;
+      })
+      .map((hour) => (
+        <option key={hour} value={hour}>
+          {hour}
+        </option>
+      ))}
+  </select>
+  </div>
+
+
+                      </div>
+</th>
+
+
+                    <th>
+                      <div className='filter-column'>
+                      ご注文のケーキ
                       {/* Filtro por bolo */}
 <select value={cakeFilter} onChange={(e) => setCakeFilter(e.target.value)}>
   <option value="すべて">すべて</option>
@@ -459,6 +510,7 @@ type FilterStylesConfig = StylesConfig<FilterOption, false>;
     <option key={cake} value={cake}>{cake}</option>
   ))}
 </select>
+                      </div>
                     </th>
                     {/* <th>値段</th> */}
                     <th>個数</th>
@@ -477,6 +529,7 @@ type FilterStylesConfig = StylesConfig<FilterOption, false>;
     const matchesStatus = statusFilter === "すべて" || order.status === statusFilter;
     const matchesCake = cakeFilter === "すべて" || order.cakes.some(cake => cake.name === cakeFilter);
     const matchesDate = dateFilter === "すべて" || order.date === dateFilter;
+    const matchesHour = hourFilter === "すべて" || order.pickupHour === hourFilter;
     // const matchesSearch = !term || 
     //   order.id_order.toString().includes(term) ||
     //   order.first_name.toLowerCase().includes(term) ||
@@ -484,7 +537,7 @@ type FilterStylesConfig = StylesConfig<FilterOption, false>;
     //   order.tel.includes(term) ||
     //   order.cakes.some(cake => cake.name.toLowerCase().includes(term)); 
 
-    return matchesStatus && matchesCake && matchesDate 
+    return matchesStatus && matchesCake && matchesDate && matchesHour;
     // && matchesSearch
     ;
   })
@@ -495,10 +548,10 @@ type FilterStylesConfig = StylesConfig<FilterOption, false>;
                     <tr key={order.id_order}>
                       <td>{String(order.id_order).padStart(4, "0")}</td>
                       <td className='situation-cell'>
-                        <Select<StatusOption, false>
+                        <Select<StatusOptionStatus, false>
                           options={statusOptions}
                           value={statusOptions.find((opt) => opt.value === order.status)}
-                          onChange={(selected: SingleValue<StatusOption>) => {
+                          onChange={(selected: SingleValue<StatusOptionStatus>) => {
                             if (selected) handleStatusChange(order.id_order, selected.value);
                           }}
                           styles={customStyles}
@@ -547,13 +600,18 @@ type FilterStylesConfig = StylesConfig<FilterOption, false>;
                     </tr>
                   ))}
                 </tbody>
+
+                </div>
               </table>
+
+
+              
               {/* Totais por dia */}
-              <div className="day-summary">
+              {/* <div className="day-summary">
                 <strong>合計商品数: </strong> {totalProdutos} 個
                 <br />
                 <strong>合計金額: </strong> ¥{totalValor.toLocaleString()}
-              </div>
+              </div> */}
             </div>
             );  
         })}
@@ -561,23 +619,23 @@ type FilterStylesConfig = StylesConfig<FilterOption, false>;
 
           {/* Cards (mobile) */}
           <div className="mobile-orders">
-            {/* {orders.map((order) => (
+            {orders.map((order) => (
               <div className="order-card" key={order.id_order}>
+                <Select
+                  options={statusOptions}
+                  value={statusOptions.find((opt) => opt.value === order.status)}
+                  onChange={(selected) =>
+                    handleStatusChange(order.id_order, selected?.value as "a" | "b" | "c" | "d" | "e")
+                  }
+                  menuPortalTarget={document.body}  // <--- aqui
+                  styles={{
+                    ...customStyles,
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                  }}
+                />
                 <div className="order-header">
                   <span>受付番号: {String(order.id_order).padStart(4, "0")}</span>
                 </div>
-                  <Select
-                    options={statusOptions}
-                    value={statusOptions.find((opt) => opt.value === order.status)}
-                    onChange={(selected) =>
-                      handleStatusChange(order.id_order, selected?.value as "a" | "b" | "c" | "d" | "e")
-                    }
-                    menuPortalTarget={document.body}  // <--- aqui
-                    styles={{
-                      ...customStyles,
-                      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                    }}
-                  />
                 <p>お名前: {order.first_name} {order.last_name}</p>
                 <p>受取日: {order.date} {order.pickupHour}</p>
                 <details>
@@ -594,7 +652,7 @@ type FilterStylesConfig = StylesConfig<FilterOption, false>;
                 </details>
               </div>
             
-            ))} */}
+            ))}
           </div>
         </>
       )}
