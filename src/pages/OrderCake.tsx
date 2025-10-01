@@ -5,6 +5,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { ja } from 'date-fns/locale';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addDays, isAfter, isSameDay, format } from 'date-fns';
+// import TimeSelect from "./TimeSelect"; 
 
 import type { OrderCake, OptionType, MyContainerProps, CakeJson, TimeslotDay, TimeslotResponse } from "../types/types.ts";
 import "./OrderCake.css";
@@ -43,7 +44,7 @@ export default function OrderCake() {
       });
   }, []);
 
-  const [allowedDates, setAllowedDates] = useState<Date[]>([]);
+  // const [allowedDates, setAllowedDates] = useState<Date[]>([]);
   const [timeSlotsData, setTimeSlotsData] = useState<TimeslotDay[]>([]);
   
   useEffect(() => {
@@ -51,11 +52,11 @@ export default function OrderCake() {
       .then(res => res.json())
       .then((data: TimeslotResponse) => {
         setTimeSlotsData(data.timeslots || []);
-        const dates = data.availableDates.map((d) => {
-          const [year, month, day] = d.split("-").map(Number);
-          return new Date(year, month - 1, day);
-        });
-        setAllowedDates(dates);
+        // const dates = data.availableDates.map((d) => {
+        //   const [year, month, day] = d.split("-").map(Number);
+        //   return new Date(year, month - 1, day);
+        // });
+        // setAllowedDates(dates);
       })
       .catch(err => console.error("Erro ao carregar datas:", err));
   }, []);
@@ -207,12 +208,13 @@ useEffect(() => {
     { day: 21, month: 8 },
   ];
 
-  // const allowedDates = [
-  //   new Date(today.getFullYear(), 11, 22),
-  //   new Date(today.getFullYear(), 11, 23),
-  //   new Date(today.getFullYear(), 11, 24),
-  //   new Date(today.getFullYear(), 11, 25),
-  // ];
+  const allowedDates = [
+    // new Date(today.getFullYear(), 11, 21),
+    new Date(today.getFullYear(), 11, 22),
+    new Date(today.getFullYear(), 11, 23),
+    new Date(today.getFullYear(), 11, 24),
+    new Date(today.getFullYear(), 11, 25),
+  ];
 
   const generateSpecificDatesWithMonth = () => {
     const dates: Date[] = [];
@@ -387,10 +389,11 @@ useEffect(() => {
                         onChange={selected =>  
                             updateCake(index, "id_cake", selected ? Number(selected.value) : 0)
                         }
+                        noOptionsMessage={() => "読み込み中..."}
                         classNamePrefix="react-select"
                         placeholder="ケーキを選択"
                         required
-                        isSearchable={false} 
+                        isSearchable={false}
                         styles={customStyles}
                         formatOptionLabel={(option, { context }) => {
                           const isSelected = Number(option.value) === item.id_cake;
