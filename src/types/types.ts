@@ -77,3 +77,8 @@ export type TimeslotResponse = {
 };
 
 export type StatusOption = { value: string; label: string };
+
+export type StatusOptionStatus = {
+  value: "a" | "b" | "c" | "d" | "e";
+  label: string;
+};
