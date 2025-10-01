@@ -19,6 +19,7 @@ export default function Hero() {
   }, []);
 
   const handleClick = (cake: Cake) => {
+    if (cake.stock <= 0) return;
     navigate(`/cakeinformation?cake=${encodeURIComponent(cake.name)}`);
   };
 
@@ -32,17 +33,21 @@ export default function Hero() {
       if (index === 1) extraClass = "tall";
       if (index === 2) extraClass = "wide";
 
+      const isDisabled = cake.stock <= 0;
+
       return (
         <div
           key={cake.id_cake}
-          className={`hero-cell ${extraClass} ${cake.stock <= 0 ? "disabled" : ""}`}
+          className={`hero-cell ${extraClass} ${isDisabled ? "disabled" : ""}`}
           onClick={() => handleClick(cake)}
+          style={{ cursor: isDisabled ? "not-allowed" : "pointer" }}
         >
           <img
             src={cake.image}
             alt={cake.name}
             className="hero-img"
           />
+          {isDisabled && <div className="overlay">完売</div>}
         </div>
       );
     })}
