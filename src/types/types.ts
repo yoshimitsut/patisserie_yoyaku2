@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 export type SizeOption = {
   size: string;
   price: number;
+  stock: number;
+  isDisabled?: boolean;
 };
 
 export type Cake = {
@@ -11,7 +13,7 @@ export type Cake = {
   name: string;
   sizes: SizeOption[];
   description: string;
-  stock: number;
+  // stock: number;
   image: string;
 };
 
