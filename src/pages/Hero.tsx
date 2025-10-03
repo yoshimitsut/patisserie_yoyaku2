@@ -19,8 +19,14 @@ export default function Hero() {
   }, []);
 
   const handleClick = (cake: Cake) => {
-    if (cake.stock <= 0) return;
+    const totalStock = cake.sizes?.reduce((sum, s) => sum + (s.stock || 0), 0) || 0;
+    if (totalStock <= 0) return;
     navigate(`/cakeinformation?cake=${encodeURIComponent(cake.name)}`);
+  };
+
+  const isDisabled = (cake: Cake) => {
+    const totalStock = cake.sizes?.reduce((sum, s) => sum + (s.stock || 0), 0) || 0;
+    return totalStock <= 0;
   };
 
   return (
@@ -33,21 +39,21 @@ export default function Hero() {
       if (index === 1) extraClass = "tall";
       if (index === 2) extraClass = "wide";
 
-      const isDisabled = cake.stock <= 0;
+      const disabled = isDisabled(cake);
 
       return (
         <div
           key={cake.id_cake}
-          className={`hero-cell ${extraClass} ${isDisabled ? "disabled" : ""}`}
+          className={`hero-cell ${extraClass} ${disabled ? "disabled" : ""}`}
           onClick={() => handleClick(cake)}
-          style={{ cursor: isDisabled ? "not-allowed" : "pointer" }}
+          style={{ cursor: disabled ? "not-allowed" : "pointer" }}
         >
           <img
             src={cake.image}
             alt={cake.name}
             className="hero-img"
           />
-          {isDisabled && <div className="overlay">完売</div>}
+          {disabled && <div className="overlay">完売</div>}
         </div>
       );
     })}
